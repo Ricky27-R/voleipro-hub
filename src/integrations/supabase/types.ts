@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      players: {
+        Row: {
+          birthdate: string
+          created_at: string
+          document_id: string
+          full_name: string
+          id: string
+          position: Database["public"]["Enums"]["player_position"]
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          birthdate: string
+          created_at?: string
+          document_id: string
+          full_name: string
+          id?: string
+          position: Database["public"]["Enums"]["player_position"]
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          birthdate?: string
+          created_at?: string
+          document_id?: string
+          full_name?: string
+          id?: string
+          position?: Database["public"]["Enums"]["player_position"]
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -124,8 +165,18 @@ export type Database = {
         Args: { target_club_id: string }
         Returns: boolean
       }
+      is_team_club_owner: {
+        Args: { target_team_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      player_position:
+        | "Setter"
+        | "Libero"
+        | "Middle Blocker"
+        | "Outside Hitter"
+        | "Opposite"
       user_role:
         | "entrenador_principal"
         | "entrenador_asistente"
@@ -257,6 +308,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      player_position: [
+        "Setter",
+        "Libero",
+        "Middle Blocker",
+        "Outside Hitter",
+        "Opposite",
+      ],
       user_role: [
         "entrenador_principal",
         "entrenador_asistente",

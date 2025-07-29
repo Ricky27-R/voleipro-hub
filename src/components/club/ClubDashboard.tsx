@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Club } from '@/hooks/useClub';
 import { TeamsManager } from '../teams/TeamsManager';
+import { PlayersManager } from '../players/PlayersManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,8 @@ import {
   Users, 
   Home,
   ChevronRight,
-  LogOut
+  LogOut,
+  UserCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -34,7 +36,7 @@ interface ClubDashboardProps {
   onEdit: () => void;
 }
 
-type ActiveSection = 'overview' | 'teams';
+type ActiveSection = 'overview' | 'teams' | 'players';
 
 const sidebarItems = [
   { 
@@ -48,6 +50,12 @@ const sidebarItems = [
     title: 'Equipos', 
     icon: Users,
     description: 'Gestionar equipos del club'
+  },
+  { 
+    id: 'players' as const, 
+    title: 'Jugadoras', 
+    icon: UserCircle,
+    description: 'Gestionar jugadoras del club'
   },
 ];
 
@@ -181,6 +189,8 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         return <ClubOverview club={club} onEdit={onEdit} />;
       case 'teams':
         return <TeamsManager clubId={club.id} clubName={club.nombre} />;
+      case 'players':
+        return <PlayersManager clubId={club.id} clubName={club.nombre} />;
       default:
         return <ClubOverview club={club} onEdit={onEdit} />;
     }
