@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clubs: {
+        Row: {
+          ciudad: string
+          created_at: string
+          fecha_creacion: string
+          id: string
+          logo_url: string | null
+          nombre: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ciudad: string
+          created_at?: string
+          fecha_creacion?: string
+          id?: string
+          logo_url?: string | null
+          nombre: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ciudad?: string
+          created_at?: string
+          fecha_creacion?: string
+          id?: string
+          logo_url?: string | null
+          nombre?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
