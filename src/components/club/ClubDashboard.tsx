@@ -11,8 +11,10 @@ import {
   Edit, 
   Users, 
   Home,
-  ChevronRight 
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import {
   SidebarProvider,
   Sidebar,
@@ -171,6 +173,7 @@ const ClubSidebar = ({
 
 export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
   const [activeSection, setActiveSection] = useState<ActiveSection>('overview');
+  const { signOut } = useAuth();
 
   const renderContent = () => {
     switch (activeSection) {
@@ -192,11 +195,22 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-12 flex items-center border-b bg-background px-4">
-            <SidebarTrigger />
-            <div className="ml-4">
-              <h2 className="font-semibold text-foreground">{club.nombre}</h2>
+          <header className="h-12 flex items-center justify-between border-b bg-background px-4">
+            <div className="flex items-center">
+              <SidebarTrigger />
+              <div className="ml-4">
+                <h2 className="font-semibold text-foreground">{club.nombre}</h2>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={signOut}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar Sesión
+            </Button>
           </header>
           
           <main className="flex-1 p-6">
