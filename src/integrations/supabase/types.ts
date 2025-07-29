@@ -47,12 +47,53 @@ export type Database = {
         }
         Relationships: []
       }
+      teams: {
+        Row: {
+          año: number
+          categoria: string
+          club_id: string
+          created_at: string
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          año: number
+          categoria: string
+          club_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          año?: number
+          categoria?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_club_owner: {
+        Args: { target_club_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
