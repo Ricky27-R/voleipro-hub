@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      assistant_invitations: {
+        Row: {
+          accepted: boolean
+          club_id: string
+          code: string
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          accepted?: boolean
+          club_id: string
+          code: string
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          accepted?: boolean
+          club_id?: string
+          code?: string
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_assistant_invitations_club"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           ciudad: string
@@ -90,6 +125,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          club_id: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -99,6 +135,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -108,6 +145,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
@@ -116,7 +154,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {
@@ -161,6 +207,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: { invitation_code: string; user_id: string }
+        Returns: boolean
+      }
       is_club_owner: {
         Args: { target_club_id: string }
         Returns: boolean

@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ClubManagement from "./pages/ClubManagement";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,11 @@ const App = () => (
             <Route path="/club" element={
               <ProtectedRoute>
                 <ClubManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/accept-invitation" element={
+              <ProtectedRoute>
+                <AcceptInvitation />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

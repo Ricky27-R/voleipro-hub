@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Club } from '@/hooks/useClub';
 import { TeamsManager } from '../teams/TeamsManager';
 import { PlayersManager } from '../players/PlayersManager';
+import { InvitationsManager } from '../invitations/InvitationsManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,7 @@ interface ClubDashboardProps {
   onEdit: () => void;
 }
 
-type ActiveSection = 'overview' | 'teams' | 'players';
+type ActiveSection = 'overview' | 'teams' | 'players' | 'invitations';
 
 const sidebarItems = [
   { 
@@ -56,6 +57,12 @@ const sidebarItems = [
     title: 'Jugadoras', 
     icon: UserCircle,
     description: 'Gestionar jugadoras del club'
+  },
+  { 
+    id: 'invitations' as const, 
+    title: 'Entrenadores', 
+    icon: Users,
+    description: 'Gestionar entrenadores asistentes'
   },
 ];
 
@@ -191,6 +198,8 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         return <TeamsManager clubId={club.id} clubName={club.nombre} />;
       case 'players':
         return <PlayersManager clubId={club.id} clubName={club.nombre} />;
+      case 'invitations':
+        return <InvitationsManager />;
       default:
         return <ClubOverview club={club} onEdit={onEdit} />;
     }
