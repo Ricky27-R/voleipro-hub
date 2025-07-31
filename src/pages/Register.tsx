@@ -6,14 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useInvitations } from '@/hooks/useInvitations';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [invitationCode, setInvitationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp, user } = useAuth();
+  const { acceptInvitation } = useInvitations();
   const { toast } = useToast();
 
   // Redirect if already logged in
@@ -25,24 +28,50 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(email, password, firstName, lastName);
+    try {
+      const { error } = await signUp(email, password, firstName, lastName);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error en el registro",
+          description: error.message === "User already registered" 
+            ? "Ya existe una cuenta con este email."
+            : error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Si hay código de invitación, intentar aceptarlo
+      if (invitationCode.trim()) {
+        try {
+          await acceptInvitation(invitationCode);
+          toast({
+            title: "¡Registro exitoso!",
+            description: "Te has registrado y unido al club como entrenador asistente.",
+          });
+        } catch (invitationError) {
+          toast({
+            title: "Cuenta creada, pero error con la invitación",
+            description: "Tu cuenta se creó correctamente, pero hubo un problema con el código de invitación. Contacta al entrenador principal.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Registro exitoso",
+          description: "Tu cuenta ha sido creada. Esperando aprobación como entrenador principal.",
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error en el registro",
-        description: error.message === "User already registered" 
-          ? "Ya existe una cuenta con este email."
-          : error.message,
+        description: "Hubo un problema al crear tu cuenta.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Registro exitoso",
-        description: "Tu cuenta ha sido creada. Ya puedes acceder al dashboard.",
-      });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -51,7 +80,7 @@ const Register = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
           <CardDescription>
-            Regístrate como Entrenador Principal en VoleiProManager
+            Regístrate en VoleiProManager como Entrenador Principal o usa un código para unirte como Asistente
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,6 +131,19 @@ const Register = () => {
                 placeholder="••••••••"
                 minLength={6}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invitationCode">Código de Invitación (Opcional)</Label>
+              <Input
+                id="invitationCode"
+                type="text"
+                value={invitationCode}
+                onChange={(e) => setInvitationCode(e.target.value)}
+                placeholder="Ingresa código para unirte como asistente"
+              />
+              <p className="text-xs text-muted-foreground">
+                Si tienes un código de invitación, serás registrado como entrenador asistente
+              </p>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creando cuenta..." : "Crear Cuenta"}
