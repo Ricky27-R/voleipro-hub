@@ -211,6 +211,14 @@ export type Database = {
         Args: { invitation_code: string; user_id: string }
         Returns: boolean
       }
+      approve_coach: {
+        Args: { coach_id: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_club_owner: {
         Args: { target_club_id: string }
         Returns: boolean

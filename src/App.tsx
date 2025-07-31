@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ClubManagement from "./pages/ClubManagement";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import PendingApproval from "./pages/PendingApproval";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,13 +27,23 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/pending-approval" element={
+              <ProtectedRoute requireApproval={false}>
+                <PendingApproval />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute adminOnly={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/club" element={
               <ProtectedRoute>
                 <ClubManagement />
               </ProtectedRoute>
             } />
             <Route path="/accept-invitation" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireApproval={false}>
                 <AcceptInvitation />
               </ProtectedRoute>
             } />
