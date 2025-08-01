@@ -49,6 +49,66 @@ export type Database = {
           },
         ]
       }
+      assistant_requests: {
+        Row: {
+          club_id: string
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      club_invitation_codes: {
+        Row: {
+          club_id: string
+          code: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          code: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clubs: {
         Row: {
           ciudad: string
@@ -211,9 +271,17 @@ export type Database = {
         Args: { invitation_code: string; user_id: string }
         Returns: boolean
       }
+      approve_assistant_request: {
+        Args: { request_id: string }
+        Returns: boolean
+      }
       approve_coach: {
         Args: { coach_id: string }
         Returns: boolean
+      }
+      generate_club_code: {
+        Args: { club_name: string }
+        Returns: string
       }
       is_admin: {
         Args: Record<PropertyKey, never>

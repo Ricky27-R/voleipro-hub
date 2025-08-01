@@ -38,5 +38,10 @@ export const ProtectedRoute = ({ children, requireApproval = true, adminOnly = f
     return <Navigate to="/pending-approval" replace />;
   }
 
+  // Si es entrenador asistente pero no está en un club, redirigir a página de pendiente de asistente
+  if (requireApproval && profile.role === 'entrenador_asistente' && !profile.club_id) {
+    return <Navigate to="/assistant-pending" replace />;
+  }
+
   return <>{children}</>;
 };

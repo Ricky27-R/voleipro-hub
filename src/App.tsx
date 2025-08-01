@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import ClubManagement from "./pages/ClubManagement";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PendingApproval from "./pages/PendingApproval";
+import AssistantPending from "./pages/AssistantPending";
 import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,11 @@ const App = () => (
             <Route path="/pending-approval" element={
               <ProtectedRoute requireApproval={false}>
                 <PendingApproval />
+              </ProtectedRoute>
+            } />
+            <Route path="/assistant-pending" element={
+              <ProtectedRoute requireApproval={false}>
+                <AssistantPending />
               </ProtectedRoute>
             } />
             <Route path="/admin" element={

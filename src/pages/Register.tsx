@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useClubInvitations } from '@/hooks/useClubInvitations';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ const Register = () => {
   const [invitationCode, setInvitationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp, user } = useAuth();
-  const { acceptInvitation } = useInvitations();
+  const { createAssistantRequest } = useClubInvitations();
   const { toast } = useToast();
 
   // Redirect if already logged in
@@ -42,13 +42,13 @@ const Register = () => {
         return;
       }
 
-      // Si hay código de invitación, intentar aceptarlo
+      // Si hay código de invitación, crear solicitud
       if (invitationCode.trim()) {
         try {
-          await acceptInvitation(invitationCode);
+          await createAssistantRequest(invitationCode);
           toast({
             title: "¡Registro exitoso!",
-            description: "Te has registrado y unido al club como entrenador asistente.",
+            description: "Te has registrado y enviado solicitud para unirte al club como entrenador asistente.",
           });
         } catch (invitationError) {
           toast({
