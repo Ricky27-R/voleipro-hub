@@ -142,6 +142,195 @@ export type Database = {
         }
         Relationships: []
       }
+      event_chat_messages: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          message: string
+          message_type: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          message: string
+          message_type?: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          message?: string
+          message_type?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_chat_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_documents: {
+        Row: {
+          created_at: string
+          event_id: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_documents_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_registrations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          organizer_notes: string | null
+          questions: string | null
+          registering_coach_id: string
+          registration_date: string
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          organizer_notes?: string | null
+          questions?: string | null
+          registering_coach_id: string
+          registration_date?: string
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          organizer_notes?: string | null
+          questions?: string | null
+          registering_coach_id?: string
+          registration_date?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_registrations_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_registrations_team"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          benefits: string[] | null
+          city: string
+          created_at: string
+          date: string
+          description: string | null
+          event_type: string
+          id: string
+          location: string
+          max_participants: number | null
+          name: string
+          organizer_club_id: string
+          organizer_id: string
+          registration_deadline: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          benefits?: string[] | null
+          city: string
+          created_at?: string
+          date: string
+          description?: string | null
+          event_type: string
+          id?: string
+          location: string
+          max_participants?: number | null
+          name: string
+          organizer_club_id: string
+          organizer_id: string
+          registration_deadline?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: string[] | null
+          city?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          location?: string
+          max_participants?: number | null
+          name?: string
+          organizer_club_id?: string
+          organizer_id?: string
+          registration_deadline?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_events_organizer_club"
+            columns: ["organizer_club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           birthdate: string

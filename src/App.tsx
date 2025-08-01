@@ -14,6 +14,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import PendingApproval from "./pages/PendingApproval";
 import AssistantPending from "./pages/AssistantPending";
 import AdminDashboard from "./pages/AdminDashboard";
+import Events from "./pages/Events";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,11 @@ const App = () => (
             <Route path="/accept-invitation" element={
               <ProtectedRoute requireApproval={false}>
                 <AcceptInvitation />
+              </ProtectedRoute>
+            } />
+            <Route path="/events" element={
+              <ProtectedRoute>
+                <Events />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
