@@ -21,7 +21,7 @@ const EventsManager = () => {
   const filteredEvents = events?.filter(event => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.clubs?.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+                         event.organizer_club?.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || event.event_type === filterType;
     const matchesCity = filterCity === 'all' || event.city === filterCity;
     

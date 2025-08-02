@@ -86,7 +86,7 @@ export const EventCard = ({ event, userTeams }: EventCardProps) => {
         <div>
           <p className="text-sm text-muted-foreground mb-2">Organizador:</p>
           <p className="font-medium">
-            {event.profiles?.first_name} {event.profiles?.last_name} - {event.clubs?.nombre}
+            {event.organizer?.first_name} {event.organizer?.last_name} - {event.organizer_club?.nombre}
           </p>
         </div>
 

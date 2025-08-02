@@ -323,6 +323,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "events_organizer_club_id_fkey"
+            columns: ["organizer_club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_events_organizer_club"
             columns: ["organizer_club_id"]
             isOneToOne: false

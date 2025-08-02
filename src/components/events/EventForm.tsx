@@ -45,7 +45,14 @@ export const EventForm = ({ onClose }: EventFormProps) => {
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
+      name: '',
       event_type: 'tournament',
+      description: '',
+      date: '',
+      location: '',
+      city: '',
+      max_participants: undefined,
+      registration_deadline: '',
     },
   });
 
@@ -76,9 +83,12 @@ export const EventForm = ({ onClose }: EventFormProps) => {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="event-form-description">
         <DialogHeader>
           <DialogTitle>Crear Nuevo Evento</DialogTitle>
+          <p id="event-form-description" className="sr-only">
+            Formulario para crear un nuevo evento deportivo
+          </p>
         </DialogHeader>
 
         <Form {...form}>

@@ -11,11 +11,11 @@ export const useEvents = () => {
         .from('events')
         .select(`
           *,
-          profiles:organizer_id (
+          organizer:profiles!organizer_id (
             first_name,
             last_name
           ),
-          clubs:organizer_club_id (
+          organizer_club:clubs!organizer_club_id (
             nombre
           )
         `)
