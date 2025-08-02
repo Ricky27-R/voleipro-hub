@@ -345,36 +345,98 @@ export type Database = {
           },
         ]
       }
+      injury_logs: {
+        Row: {
+          created_at: string
+          description: string
+          expected_recovery_date: string | null
+          id: string
+          injury_date: string
+          notes: string | null
+          player_id: string
+          recovery_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          expected_recovery_date?: string | null
+          id?: string
+          injury_date: string
+          notes?: string | null
+          player_id: string
+          recovery_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          expected_recovery_date?: string | null
+          id?: string
+          injury_date?: string
+          notes?: string | null
+          player_id?: string
+          recovery_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "injury_logs_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
+          allergies: string | null
           birthdate: string
           created_at: string
           document_id: string
           full_name: string
+          height_cm: number | null
           id: string
+          jersey_number: number | null
+          jump_cm: number | null
           position: Database["public"]["Enums"]["player_position"]
+          reach_cm: number | null
           team_id: string
           updated_at: string
+          weight_kg: number | null
         }
         Insert: {
+          allergies?: string | null
           birthdate: string
           created_at?: string
           document_id: string
           full_name: string
+          height_cm?: number | null
           id?: string
+          jersey_number?: number | null
+          jump_cm?: number | null
           position: Database["public"]["Enums"]["player_position"]
+          reach_cm?: number | null
           team_id: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Update: {
+          allergies?: string | null
           birthdate?: string
           created_at?: string
           document_id?: string
           full_name?: string
+          height_cm?: number | null
           id?: string
+          jersey_number?: number | null
+          jump_cm?: number | null
           position?: Database["public"]["Enums"]["player_position"]
+          reach_cm?: number | null
           team_id?: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Relationships: [
           {
