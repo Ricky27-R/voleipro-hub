@@ -9,6 +9,12 @@ export interface Player {
   birthdate: string;
   position: 'Setter' | 'Libero' | 'Middle Blocker' | 'Outside Hitter' | 'Opposite';
   team_id: string;
+  jersey_number?: number;
+  height_cm?: number;
+  weight_kg?: number;
+  reach_cm?: number;
+  jump_cm?: number;
+  allergies?: string;
   created_at: string;
   updated_at: string;
 }
