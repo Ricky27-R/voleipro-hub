@@ -5,6 +5,7 @@ import { Plus, Search } from 'lucide-react';
 import { useTeams, Team } from '@/hooks/useTeams';
 import { usePlayers, Player } from '@/hooks/usePlayers';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { TeamCard } from './TeamCard';
 import { TeamDrawer } from './TeamDrawer';
 import { PlayerProfile } from './PlayerProfile';
@@ -17,7 +18,8 @@ interface EnhancedTeamsManagerProps {
 }
 
 export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerProps) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
   const { teams, loading: teamsLoading, createTeam, updateTeam, deleteTeam } = useTeams(clubId);
   const { players, createPlayer, updatePlayer, deletePlayer } = usePlayers();
   
@@ -133,8 +135,9 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
 
       {view === 'create' && (
         <TeamForm
+          clubId={clubId}
           onSubmit={async (data) => {
-            await createTeam({ ...data, club_id: clubId });
+            await createTeam(data as Omit<Team, 'id' | 'created_at' | 'updated_at'>);
             setView('list');
           }}
           onCancel={() => setView('list')}
@@ -143,6 +146,8 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
 
       {view === 'edit' && editingTeam && (
         <TeamForm
+          clubId={clubId}
+          team={editingTeam}
           onSubmit={async (data) => {
             await updateTeam(editingTeam.id, data);
             setView('list');
@@ -152,8 +157,6 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
             setView('list');
             setEditingTeam(null);
           }}
-          initialData={editingTeam}
-          isEditing
         />
       )}
 
