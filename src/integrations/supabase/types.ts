@@ -738,9 +738,17 @@ export type Database = {
         Args: { coach_id: string }
         Returns: boolean
       }
+      decrement_team_score: {
+        Args: { p_set_id: string; p_team_id: string }
+        Returns: undefined
+      }
       generate_club_code: {
         Args: { club_name: string }
         Returns: string
+      }
+      increment_team_score: {
+        Args: { p_set_id: string; p_team_id: string }
+        Returns: undefined
       }
       is_admin: {
         Args: Record<PropertyKey, never>
