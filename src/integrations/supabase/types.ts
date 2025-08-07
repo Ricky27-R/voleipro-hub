@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      actions: {
+        Row: {
+          action_type: Database["public"]["Enums"]["action_type"]
+          created_at: string
+          created_by: string
+          id: string
+          player_id: string | null
+          result: Database["public"]["Enums"]["action_result"]
+          session_id: string
+          set_id: string
+          synced: boolean
+          team_id: string
+          ts: string
+          zone: number | null
+        }
+        Insert: {
+          action_type: Database["public"]["Enums"]["action_type"]
+          created_at?: string
+          created_by: string
+          id?: string
+          player_id?: string | null
+          result: Database["public"]["Enums"]["action_result"]
+          session_id: string
+          set_id: string
+          synced?: boolean
+          team_id: string
+          ts?: string
+          zone?: number | null
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["action_type"]
+          created_at?: string
+          created_by?: string
+          id?: string
+          player_id?: string | null
+          result?: Database["public"]["Enums"]["action_result"]
+          session_id?: string
+          set_id?: string
+          synced?: boolean
+          team_id?: string
+          ts?: string
+          zone?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "actions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "actions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "actions_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "actions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistant_invitations: {
         Row: {
           accepted: boolean
@@ -384,6 +465,13 @@ export type Database = {
             foreignKeyName: "injury_logs_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "injury_logs_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
@@ -392,9 +480,12 @@ export type Database = {
       players: {
         Row: {
           allergies: string | null
+          approach_jump_cm: number | null
           birthdate: string
+          block_jump_cm: number | null
           created_at: string
           document_id: string
+          dominant_hand: Database["public"]["Enums"]["dominant_hand"] | null
           full_name: string
           height_cm: number | null
           id: string
@@ -408,9 +499,12 @@ export type Database = {
         }
         Insert: {
           allergies?: string | null
+          approach_jump_cm?: number | null
           birthdate: string
+          block_jump_cm?: number | null
           created_at?: string
           document_id: string
+          dominant_hand?: Database["public"]["Enums"]["dominant_hand"] | null
           full_name: string
           height_cm?: number | null
           id?: string
@@ -424,9 +518,12 @@ export type Database = {
         }
         Update: {
           allergies?: string | null
+          approach_jump_cm?: number | null
           birthdate?: string
+          block_jump_cm?: number | null
           created_at?: string
           document_id?: string
+          dominant_hand?: Database["public"]["Enums"]["dominant_hand"] | null
           full_name?: string
           height_cm?: number | null
           id?: string
@@ -489,6 +586,83 @@ export type Database = {
           },
         ]
       }
+      sessions: {
+        Row: {
+          club_id: string
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          location: string
+          opponent: string | null
+          title: string
+          type: Database["public"]["Enums"]["session_type"]
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          created_by: string
+          date: string
+          id?: string
+          location: string
+          opponent?: string | null
+          title: string
+          type: Database["public"]["Enums"]["session_type"]
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          created_by?: string
+          date?: string
+          id?: string
+          location?: string
+          opponent?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["session_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sets: {
+        Row: {
+          created_at: string
+          id: string
+          opp_score: number
+          session_id: string
+          set_number: number
+          team_score: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          opp_score?: number
+          session_id: string
+          set_number: number
+          team_score?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          opp_score?: number
+          session_id?: string
+          set_number?: number
+          team_score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           año: number
@@ -529,7 +703,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      player_stats: {
+        Row: {
+          blocks: number | null
+          digs: number | null
+          full_name: string | null
+          hitting_pct: number | null
+          player_id: string | null
+          serve_eff: number | null
+          session_type: Database["public"]["Enums"]["session_type"] | null
+          team_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invitation: {
@@ -562,12 +756,24 @@ export type Database = {
       }
     }
     Enums: {
+      action_result: "point" | "error" | "continue"
+      action_type:
+        | "serve"
+        | "pass"
+        | "set"
+        | "attack"
+        | "block"
+        | "dig"
+        | "free"
+        | "error"
+      dominant_hand: "right" | "left" | "ambidextrous"
       player_position:
         | "Setter"
         | "Libero"
         | "Middle Blocker"
         | "Outside Hitter"
         | "Opposite"
+      session_type: "match" | "training" | "scrimmage"
       user_role:
         | "entrenador_principal"
         | "entrenador_asistente"
@@ -701,6 +907,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      action_result: ["point", "error", "continue"],
+      action_type: [
+        "serve",
+        "pass",
+        "set",
+        "attack",
+        "block",
+        "dig",
+        "free",
+        "error",
+      ],
+      dominant_hand: ["right", "left", "ambidextrous"],
       player_position: [
         "Setter",
         "Libero",
@@ -708,6 +926,7 @@ export const Constants = {
         "Outside Hitter",
         "Opposite",
       ],
+      session_type: ["match", "training", "scrimmage"],
       user_role: [
         "entrenador_principal",
         "entrenador_asistente",
