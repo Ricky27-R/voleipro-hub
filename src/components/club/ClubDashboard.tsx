@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Club } from '@/hooks/useClub';
-import { TeamsManager } from '../teams/TeamsManager';
+import { EnhancedTeamsManager } from '../teams/EnhancedTeamsManager';
 import { PlayersManager } from '../players/PlayersManager';
 import { InvitationsManager } from '../invitations/InvitationsManager';
+import EventsManager from '../events/EventsManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +40,7 @@ interface ClubDashboardProps {
   onEdit: () => void;
 }
 
-type ActiveSection = 'overview' | 'teams' | 'players' | 'invitations' | 'stats';
+type ActiveSection = 'overview' | 'teams' | 'players' | 'events' | 'invitations' | 'stats';
 
 const sidebarItems = [
   { 
@@ -59,6 +60,12 @@ const sidebarItems = [
     title: 'Jugadoras', 
     icon: UserCircle,
     description: 'Gestionar jugadoras del club'
+  },
+  { 
+    id: 'events' as const, 
+    title: 'Eventos', 
+    icon: Calendar,
+    description: 'Gestionar y participar en eventos'
   },
   { 
     id: 'invitations' as const, 
@@ -203,13 +210,15 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
       case 'overview':
         return <ClubOverview club={club} onEdit={onEdit} />;
       case 'teams':
-        return <TeamsManager clubId={club.id} clubName={club.nombre} />;
+        return <EnhancedTeamsManager clubId={club.id} clubName={club.nombre} />;
       case 'players':
         return <PlayersManager clubId={club.id} clubName={club.nombre} />;
-    case 'invitations':
-      return <InvitationsManager />;
-    case 'stats':
-      return <StatsManager clubId={club.id} />;
+      case 'events':
+        return <EventsManager />;
+      case 'invitations':
+        return <InvitationsManager />;
+      case 'stats':
+        return <StatsManager clubId={club.id} />;
     default:
       return <ClubOverview club={club} onEdit={onEdit} />;
     }

@@ -60,6 +60,16 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
     setShowPlayerForm(true);
   };
 
+  const handleDeletePlayer = async (playerId: string) => {
+    try {
+      const confirmed = window.confirm('¿Eliminar jugadora? Esta acción no se puede deshacer.');
+      if (!confirmed) return;
+      await deletePlayer(playerId);
+      setSelectedPlayer(null);
+    } catch (error) {
+      console.error('Error eliminando jugadora:', error);
+    }
+  };
   const handlePlayerSubmit = async (data: any) => {
     try {
       if (editingPlayer) {
@@ -175,6 +185,7 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
         isOpen={!!selectedPlayer}
         onClose={() => setSelectedPlayer(null)}
         onEdit={handleEditPlayer}
+        onDelete={(id) => handleDeletePlayer(id)}
         canEdit={canEdit}
       />
 

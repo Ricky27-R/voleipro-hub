@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Edit, User, Activity, Heart, TrendingUp } from 'lucide-react';
+import { Edit, User, Activity, Heart, TrendingUp, Trash2 } from 'lucide-react';
 import { Player } from '@/hooks/usePlayers';
 import { useInjuryLogs } from '@/hooks/useInjuryLogs';
 import { PlayerBasicInfo } from './PlayerBasicInfo';
@@ -15,6 +15,7 @@ interface PlayerProfileProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (player: Player) => void;
+  onDelete: (playerId: string) => void;
   canEdit: boolean;
 }
 
@@ -23,6 +24,7 @@ export const PlayerProfile = ({
   isOpen,
   onClose,
   onEdit,
+  onDelete,
   canEdit
 }: PlayerProfileProps) => {
   const { injuryLogs, loading: injuryLoading } = useInjuryLogs(player?.id);
@@ -95,10 +97,23 @@ export const PlayerProfile = ({
               </div>
             </div>
             {canEdit && (
-              <Button onClick={() => onEdit(player)} variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button onClick={() => onEdit(player)} variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (window.confirm('¿Está seguro de eliminar a esta jugadora? Esta acción no se puede deshacer.')) {
+                      onDelete(player.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
+                </Button>
+              </div>
             )}
           </div>
         </DialogHeader>

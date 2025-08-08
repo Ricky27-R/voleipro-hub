@@ -32,29 +32,8 @@ export const StatsCenter: React.FC<StatsCenterProps> = ({ clubId }) => {
   
   const { data: sessions } = useSessions(clubId);
 
-  // Mock data for demonstration - in real app, this would come from API
-  const playerStats = [
-    { name: 'João Silva', serves: 85, attacks: 72, blocks: 45, digs: 63 },
-    { name: 'Maria Santos', serves: 78, attacks: 89, blocks: 38, digs: 71 },
-    { name: 'Pedro Costa', serves: 92, attacks: 65, blocks: 52, digs: 45 },
-    { name: 'Ana Lima', serves: 81, attacks: 76, blocks: 41, digs: 68 },
-  ];
-
-  const teamProgress = [
-    { date: 'Jan', efficiency: 65, points: 120 },
-    { date: 'Feb', efficiency: 68, points: 135 },
-    { date: 'Mar', efficiency: 71, points: 142 },
-    { date: 'Apr', efficiency: 74, points: 158 },
-    { date: 'May', efficiency: 77, points: 167 },
-    { date: 'Jun', efficiency: 79, points: 175 },
-  ];
-
-  const actionDistribution = [
-    { name: 'Serves', value: 28, color: '#3b82f6' },
-    { name: 'Attacks', value: 35, color: '#ef4444' },
-    { name: 'Blocks', value: 15, color: '#22c55e' },
-    { name: 'Digs', value: 22, color: '#a855f7' },
-  ];
+  // Usamos solo datos reales desde Supabase (sesiones, acciones, etc.).
+  // Por ahora, no mostramos datos simulados ni gráficos con valores ficticios.
 
   const filteredSessions = sessions?.filter(session => {
     if (selectedType !== 'all' && session.type !== selectedType) return false;
@@ -69,36 +48,36 @@ export const StatsCenter: React.FC<StatsCenterProps> = ({ clubId }) => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              <span className="text-sm font-medium">Filters:</span>
+              <span className="text-sm font-medium">Filtros:</span>
             </div>
             
             <Select value={selectedType} onValueChange={setSelectedType}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Session type" />
+                <SelectValue placeholder="Tipo de sesión" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="match">Matches</SelectItem>
-                <SelectItem value="training">Training</SelectItem>
-                <SelectItem value="scrimmage">Scrimmages</SelectItem>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="match">Partidos</SelectItem>
+                <SelectItem value="training">Entrenamientos</SelectItem>
+                <SelectItem value="scrimmage">Amistosos</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Time range" />
+                <SelectValue placeholder="Rango de tiempo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="season">This Season</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="week">Esta semana</SelectItem>
+                <SelectItem value="month">Este mes</SelectItem>
+                <SelectItem value="season">Esta temporada</SelectItem>
+                <SelectItem value="all">Todo el tiempo</SelectItem>
               </SelectContent>
             </Select>
 
             <Button variant="outline" size="sm" className="ml-auto">
               <Download className="h-4 w-4 mr-2" />
-              Export
+              Exportar
             </Button>
           </div>
         </CardContent>
