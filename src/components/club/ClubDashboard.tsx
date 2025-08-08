@@ -13,6 +13,7 @@ import {
   Edit, 
   Users, 
   Home,
+  TrendingUp,
   ChevronRight,
   LogOut,
   UserCircle
@@ -31,13 +32,14 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { StatsManager } from '../stats/StatsManager';
 
 interface ClubDashboardProps {
   club: Club;
   onEdit: () => void;
 }
 
-type ActiveSection = 'overview' | 'teams' | 'players' | 'invitations';
+type ActiveSection = 'overview' | 'teams' | 'players' | 'invitations' | 'stats';
 
 const sidebarItems = [
   { 
@@ -63,6 +65,12 @@ const sidebarItems = [
     title: 'Entrenadores', 
     icon: Users,
     description: 'Gestionar entrenadores asistentes'
+  },
+  { 
+    id: 'stats' as const, 
+    title: 'Estadísticas', 
+    icon: TrendingUp,
+    description: 'Estadísticas y análisis'
   },
 ];
 
@@ -198,10 +206,12 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         return <TeamsManager clubId={club.id} clubName={club.nombre} />;
       case 'players':
         return <PlayersManager clubId={club.id} clubName={club.nombre} />;
-      case 'invitations':
-        return <InvitationsManager />;
-      default:
-        return <ClubOverview club={club} onEdit={onEdit} />;
+    case 'invitations':
+      return <InvitationsManager />;
+    case 'stats':
+      return <StatsManager clubId={club.id} />;
+    default:
+      return <ClubOverview club={club} onEdit={onEdit} />;
     }
   };
 
