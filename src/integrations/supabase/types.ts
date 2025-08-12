@@ -766,6 +766,10 @@ export type Database = {
         Args: { target_team_id: string }
         Returns: boolean
       }
+      validate_assistant_invitation: {
+        Args: { p_code: string }
+        Returns: boolean
+      }
       validate_club_code: {
         Args: { p_code: string }
         Returns: {
