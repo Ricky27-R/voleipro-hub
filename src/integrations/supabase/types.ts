@@ -738,6 +738,10 @@ export type Database = {
         Args: { coach_id: string }
         Returns: boolean
       }
+      create_assistant_request_by_code: {
+        Args: { p_code: string }
+        Returns: boolean
+      }
       decrement_team_score: {
         Args: { p_set_id: string; p_team_id: string }
         Returns: undefined
@@ -761,6 +765,13 @@ export type Database = {
       is_team_club_owner: {
         Args: { target_team_id: string }
         Returns: boolean
+      }
+      validate_club_code: {
+        Args: { p_code: string }
+        Returns: {
+          club_id: string
+          club_name: string
+        }[]
       }
     }
     Enums: {

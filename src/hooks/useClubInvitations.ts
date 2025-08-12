@@ -93,29 +93,15 @@ export const useClubInvitations = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      // Verificar que el código existe
-      const { data: codeData, error: codeError } = await supabase
-        .from('club_invitation_codes')
-        .select('club_id')
-        .eq('code', clubCode)
-        .single();
+      // Crear solicitud de asistente de forma segura (sin exponer códigos)
+      const { data, error } = await supabase.rpc('create_assistant_request_by_code', {
+        p_code: clubCode
+      });
 
-      if (codeError || !codeData) {
+      if (error) throw error;
+      if (!data) {
         throw new Error('Código de invitación inválido');
       }
-
-      // Crear solicitud
-      const { data, error } = await supabase
-        .from('assistant_requests')
-        .insert({
-          club_id: codeData.club_id,
-          user_id: user.id,
-          email: user.email!,
-          first_name: user.user_metadata?.first_name,
-          last_name: user.user_metadata?.last_name,
-        })
-        .select()
-        .single();
 
       if (error) throw error;
       
