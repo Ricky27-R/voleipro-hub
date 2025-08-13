@@ -15,25 +15,14 @@ import {
   Users, 
   Home,
   TrendingUp,
-  ChevronRight,
   LogOut,
-  UserCircle
+  UserCircle,
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from '@/components/ui/sidebar';
 import { StatsManager } from '../stats/StatsManager';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ClubDashboardProps {
   club: Club;
@@ -43,167 +32,127 @@ interface ClubDashboardProps {
 type ActiveSection = 'overview' | 'teams' | 'players' | 'events' | 'invitations' | 'stats';
 
 const sidebarItems = [
-  { 
-    id: 'overview' as const, 
-    title: 'Información General', 
-    icon: Home,
-    description: 'Datos básicos del club'
-  },
-  { 
-    id: 'teams' as const, 
-    title: 'Equipos', 
-    icon: Users,
-    description: 'Gestionar equipos del club'
-  },
-  { 
-    id: 'players' as const, 
-    title: 'Jugadoras', 
-    icon: UserCircle,
-    description: 'Gestionar jugadoras del club'
-  },
-  { 
-    id: 'events' as const, 
-    title: 'Eventos', 
-    icon: Calendar,
-    description: 'Gestionar y participar en eventos'
-  },
-  { 
-    id: 'invitations' as const, 
-    title: 'Entrenadores', 
-    icon: Users,
-    description: 'Gestionar entrenadores asistentes'
-  },
-  { 
-    id: 'stats' as const, 
-    title: 'Estadísticas', 
-    icon: TrendingUp,
-    description: 'Estadísticas y análisis'
-  },
+  { id: 'overview' as const, title: 'Información General', icon: Home },
+  { id: 'teams' as const, title: 'Equipos', icon: Users },
+  { id: 'players' as const, title: 'Jugadoras', icon: UserCircle },
+  { id: 'events' as const, title: 'Eventos', icon: Calendar },
+  { id: 'invitations' as const, title: 'Entrenadores', icon: Users },
+  { id: 'stats' as const, title: 'Estadísticas', icon: TrendingUp },
 ];
 
 const ClubOverview = ({ club, onEdit }: { club: Club; onEdit: () => void }) => (
-  <div className="space-y-6">
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+    className="space-y-8"
+  >
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Mi Club</h1>
-        <p className="text-muted-foreground mt-2">
-          Información de tu club registrado.
+        <h1 className="text-4xl font-bold tracking-tight text-white">Bienvenido a {club.nombre}</h1>
+        <p className="text-neutral-400 mt-2">
+          Gestiona todos los aspectos de tu club desde este panel.
         </p>
       </div>
-      <Button onClick={onEdit} className="gap-2">
+      <Button onClick={onEdit} className="gap-2 bg-white/10 hover:bg-white/20 text-white">
         <Edit className="h-4 w-4" />
         Editar Club
       </Button>
     </div>
 
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          {club.logo_url ? (
-            <img 
-              src={club.logo_url} 
-              alt={`Logo de ${club.nombre}`}
-              className="h-16 w-16 object-cover rounded-full border-2 border-border"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center">
-              <Building2 className="h-8 w-8 text-muted-foreground" />
-            </div>
-          )}
-          <div>
-            <CardTitle className="text-2xl">{club.nombre}</CardTitle>
-            <Badge variant="secondary" className="mt-2">
-              Club Registrado
-            </Badge>
+    <Card className="w-full bg-neutral-900/50 border-neutral-800 text-white">
+      <CardHeader className="flex flex-row items-center gap-6 p-6">
+        {club.logo_url ? (
+          <img 
+            src={club.logo_url} 
+            alt={`Logo de ${club.nombre}`}
+            className="h-24 w-24 object-cover rounded-full border-4 border-neutral-700"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="h-24 w-24 bg-neutral-800 rounded-full flex items-center justify-center">
+            <Building2 className="h-12 w-12 text-neutral-500" />
           </div>
+        )}
+        <div>
+          <CardTitle className="text-3xl font-bold">{club.nombre}</CardTitle>
+          <Badge variant="secondary" className="mt-2 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+            Club Activo
+          </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-            <MapPin className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm font-medium">Ciudad</p>
-              <p className="text-sm text-muted-foreground">{club.ciudad}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-            <Calendar className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm font-medium">Fecha de Creación</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(club.fecha_creacion).toLocaleDateString('es-ES')}
-              </p>
-            </div>
+      <CardContent className="p-6 border-t border-neutral-800 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex items-center gap-4">
+          <MapPin className="h-8 w-8 text-cyan-400" />
+          <div>
+            <p className="text-sm text-neutral-400">Ciudad</p>
+            <p className="font-semibold text-lg">{club.ciudad}</p>
           </div>
         </div>
         
-        <div className="text-center pt-4 border-t">
-          <p className="text-sm text-muted-foreground">
-            Club registrado el {new Date(club.created_at).toLocaleDateString('es-ES')}
-          </p>
+        <div className="flex items-center gap-4">
+          <Calendar className="h-8 w-8 text-cyan-400" />
+          <div>
+            <p className="text-sm text-neutral-400">Miembro desde</p>
+            <p className="font-semibold text-lg">
+              {new Date(club.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
-  </div>
+  </motion.div>
 );
 
-const ClubSidebar = ({ 
-  activeSection, 
-  onSectionChange 
-}: { 
+const ClubSidebar = ({ activeSection, onSectionChange, isCollapsed, onToggle }: { 
   activeSection: ActiveSection; 
   onSectionChange: (section: ActiveSection) => void;
+  isCollapsed: boolean;
+  onToggle: () => void;
 }) => {
-  const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const { signOut } = useAuth();
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Panel de Control</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    onClick={() => onSectionChange(item.id)}
-                    className={`w-full ${
-                      activeSection === item.id 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {!isCollapsed && (
-                      <div className="flex-1 text-left">
-                        <div className="font-medium">{item.title}</div>
-                        <div className="text-xs opacity-70">{item.description}</div>
-                      </div>
-                    )}
-                    {!isCollapsed && activeSection === item.id && (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <motion.div
+      initial={false}
+      animate={{ width: isCollapsed ? 80 : 280 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="bg-neutral-950 border-r border-neutral-800 flex flex-col h-screen sticky top-0"
+    >
+      <div className="p-4 flex items-center justify-between h-16 border-b border-neutral-800">
+        {!isCollapsed && <span className="font-bold text-xl text-white">VoleiPro</span>}
+        <Button variant="ghost" size="icon" onClick={onToggle} className="text-neutral-400 hover:text-white">
+          {isCollapsed ? <Menu /> : <X />}
+        </Button>
+      </div>
+      <nav className="flex-1 p-4 space-y-2">
+        {sidebarItems.map((item) => (
+          <Button
+            key={item.id}
+            variant={activeSection === item.id ? 'secondary' : 'ghost'}
+            onClick={() => onSectionChange(item.id)}
+            className={`w-full justify-start gap-3 ${activeSection === item.id ? 'bg-cyan-500/10 text-cyan-400' : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'}`}
+          >
+            <item.icon className="h-5 w-5" />
+            {!isCollapsed && <span>{item.title}</span>}
+          </Button>
+        ))}
+      </nav>
+      <div className="p-4 border-t border-neutral-800">
+        <Button variant="ghost" onClick={signOut} className="w-full justify-start gap-3 text-neutral-400 hover:bg-neutral-800 hover:text-white">
+          <LogOut className="h-5 w-5" />
+          {!isCollapsed && <span>Cerrar Sesión</span>}
+        </Button>
+      </div>
+    </motion.div>
   );
 };
 
 export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
   const [activeSection, setActiveSection] = useState<ActiveSection>('overview');
-  const { signOut } = useAuth();
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -219,43 +168,25 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         return <InvitationsManager />;
       case 'stats':
         return <StatsManager clubId={club.id} />;
-    default:
-      return <ClubOverview club={club} onEdit={onEdit} />;
+      default:
+        return <ClubOverview club={club} onEdit={onEdit} />;
     }
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <ClubSidebar 
-          activeSection={activeSection} 
-          onSectionChange={setActiveSection} 
-        />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="h-12 flex items-center justify-between border-b bg-background px-4">
-            <div className="flex items-center">
-              <SidebarTrigger />
-              <div className="ml-4">
-                <h2 className="font-semibold text-foreground">{club.nombre}</h2>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={signOut}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </Button>
-          </header>
-          
-          <main className="flex-1 p-6">
-            {renderContent()}
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen bg-neutral-900 flex w-full">
+      <ClubSidebar 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection}
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!isSidebarCollapsed)}
+      />
+      
+      <main className="flex-1 p-8 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {renderContent()}
+        </AnimatePresence>
+      </main>
+    </div>
   );
 };

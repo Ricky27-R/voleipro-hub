@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logoUrl from "/logo.png";
+import logoUrl from "/images/logo.png";
 
 export default function Header() {
   const [open, setOpen] = useState(false);

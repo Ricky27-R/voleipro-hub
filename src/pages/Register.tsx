@@ -3,7 +3,6 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useClubInvitations } from '@/hooks/useClubInvitations';
@@ -75,88 +74,102 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-          <CardDescription>
-            Regístrate en VoleiProManager como Entrenador Principal o usa un código para unirte como Asistente
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Nombre</Label>
+    <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-screen-xl mx-auto flex flex-col md:flex-row gap-16 items-center">
+        <div className="md:w-1/2 flex flex-col justify-center items-start">
+          <span className="text-sm uppercase tracking-widest text-neutral-400">Crea tu cuenta</span>
+          <h1 className="text-5xl lg:text-6xl font-bold mt-4">Únete a la <span className="text-orange-400">élite</span></h1>
+          <p className="mt-6 text-neutral-300 max-w-md">
+            Regístrate para empezar a gestionar tu club como un profesional.
+          </p>
+          <ul className="mt-8 space-y-2 text-neutral-300">
+            <li className="flex items-center gap-2">● Gestión de equipos y jugadoras</li>
+            <li className="flex items-center gap-2">● Estadísticas avanzadas</li>
+            <li className="flex items-center gap-2">● Colaboración en tiempo real</li>
+          </ul>
+        </div>
+        <div className="md:w-1/2 flex justify-center items-center">
+          <div className="w-full max-w-md bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold">Crear Cuenta</h2>
+              <p className="text-neutral-400">Regístrate como Entrenador Principal o usa un código para unirte como Asistente</p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">Nombre</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    placeholder="Juan"
+                    className="mt-2 bg-neutral-800 border-neutral-700"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Apellido</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    placeholder="Pérez"
+                    className="mt-2 bg-neutral-800 border-neutral-700"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="Juan"
+                  placeholder="tu@email.com"
+                  className="mt-2 bg-neutral-800 border-neutral-700"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Apellido</Label>
+              <div>
+                <Label htmlFor="password">Contraseña</Label>
                 <Input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Pérez"
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="mt-2 bg-neutral-800 border-neutral-700"
                 />
               </div>
+              <div>
+                <Label htmlFor="invitationCode">Código de Invitación (Opcional)</Label>
+                <Input
+                  id="invitationCode"
+                  type="text"
+                  value={invitationCode}
+                  onChange={(e) => setInvitationCode(e.target.value)}
+                  placeholder="Ingresa código para unirte como asistente"
+                  className="mt-2 bg-neutral-800 border-neutral-700"
+                />
+              </div>
+              <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-500" disabled={loading}>
+                {loading ? "Creando cuenta..." : "Crear Cuenta"}
+              </Button>
+            </form>
+            <div className="mt-6 text-center text-sm text-neutral-400">
+              ¿Ya tienes cuenta?{' '}
+              <Link to="/login" className="text-cyan-400 hover:underline">
+                Inicia sesión aquí
+              </Link>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="tu@email.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                minLength={6}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="invitationCode">Código de Invitación (Opcional)</Label>
-              <Input
-                id="invitationCode"
-                type="text"
-                value={invitationCode}
-                onChange={(e) => setInvitationCode(e.target.value)}
-                placeholder="Ingresa código para unirte como asistente"
-              />
-              <p className="text-xs text-muted-foreground">
-                Si tienes un código de invitación, serás registrado como entrenador asistente
-              </p>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creando cuenta..." : "Crear Cuenta"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              Inicia sesión aquí
-            </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

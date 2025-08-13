@@ -3,7 +3,6 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,50 +43,70 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-          <CardDescription>
-            Accede a tu cuenta de VoleiProManager
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="tu@email.com"
-              />
+    <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-screen-xl mx-auto flex flex-col md:flex-row gap-16 items-center">
+        <div className="md:w-1/2 flex flex-col justify-center items-start">
+          <span className="text-sm uppercase tracking-widest text-neutral-400">Accede a tu plataforma</span>
+          <h1 className="text-5xl lg:text-6xl font-bold mt-4">Bienvenido de <span className="text-cyan-400">vuelta</span></h1>
+          <p className="mt-6 text-neutral-300 max-w-md">
+            Accede a tu plataforma de gestión de voleibol y continúa transformando tu club con tecnología de vanguardia.
+          </p>
+          <ul className="mt-8 space-y-2 text-neutral-300">
+            <li className="flex items-center gap-2">● Acceso seguro</li>
+            <li className="flex items-center gap-2">● Datos protegidos</li>
+            <li className="flex items-center gap-2">● Inicio instantáneo</li>
+          </ul>
+        </div>
+
+        <div className="md:w-1/2 flex justify-center items-center">
+          <div className="w-full max-w-md bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold">Iniciar Sesión</h2>
+              <p className="text-neutral-400">Accede a tu plataforma de gestión de voleibol</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-              />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="tu@email.com"
+                  className="mt-2 bg-neutral-800 border-neutral-700"
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="mt-2 bg-neutral-800 border-neutral-700"
+                />
+              </div>
+              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600" disabled={loading}>
+                {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              </Button>
+            </form>
+            <div className="mt-6 text-center text-sm text-neutral-400">
+              ¿No tienes una cuenta?{' '}
+              <Link to="/register" className="text-cyan-400 hover:underline">
+                Regístrate aquí
+              </Link>
+              <div className="mt-2">
+                <Link to="#" className="hover:underline">
+                  ¿Olvidaste tu contraseña? Recuperar
+                </Link>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            ¿No tienes cuenta?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Regístrate aquí
-            </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
