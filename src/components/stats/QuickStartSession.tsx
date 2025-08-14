@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { useStartSession } from '@/hooks/useSessions';
 import { useTeams } from '@/hooks/useTeams';
-import { CalendarDays, MapPin, Users, Zap } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Zap, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface QuickStartSessionProps {
   clubId: string;
@@ -32,28 +33,30 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
   const [step, setStep] = useState<'preset' | 'custom'>('preset');
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<SessionForm>();
   const startSession = useStartSession();
-  const { teams } = useTeams(clubId);
+  const { teams, loading: teamsLoading } = useTeams(clubId);
 
   const sessionType = watch('type');
+
+  console.log('QuickStartSession render:', { clubId, teams, teamsLoading, step });
 
   const presetSessions = [
     {
       type: 'training' as const,
-      title: 'Practice Session',
+      title: 'Sesión de Entrenamiento',
       icon: Users,
-      description: 'Regular team practice'
+      description: 'Entrenamiento regular del equipo'
     },
     {
       type: 'match' as const,
-      title: 'Match',
+      title: 'Partido',
       icon: Zap,
-      description: 'Competitive match'
+      description: 'Partido competitivo'
     },
     {
       type: 'scrimmage' as const,
-      title: 'Scrimmage',
+      title: 'Amistoso',
       icon: CalendarDays,
-      description: 'Practice match'
+      description: 'Partido de práctica'
     }
   ];
 
@@ -65,6 +68,8 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
 
   const onSubmit = async (data: SessionForm) => {
     try {
+      console.log('Submitting session data:', data);
+      
       const result = await startSession.mutateAsync({
         type: data.type,
         title: data.title,
@@ -74,25 +79,72 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
         location: data.location
       });
       
+      console.log('Session result:', result);
+      
       if (result.session) {
+        toast.success('Sesión iniciada correctamente');
         onSessionStarted(result.session.id);
+      } else {
+        throw new Error('No se pudo crear la sesión');
       }
     } catch (error) {
       console.error('Failed to start session:', error);
+      toast.error('Error al iniciar la sesión: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
+
+  // Loading state for teams
+  if (teamsLoading) {
+    return (
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Iniciar Sesión</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Cargando equipos...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // No teams available
+  if (!teams || teams.length === 0) {
+    return (
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>No hay equipos disponibles</DialogTitle>
+          </DialogHeader>
+          <div className="text-center p-6">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground mb-4">
+              Necesitas crear al menos un equipo antes de poder iniciar una sesión.
+            </p>
+            <Button onClick={onClose} variant="outline">
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Quick Start Session</DialogTitle>
+          <DialogTitle>Iniciar Sesión</DialogTitle>
         </DialogHeader>
 
         {step === 'preset' && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Choose a session type to get started quickly
+              Elige un tipo de sesión para comenzar rápidamente
             </p>
             <div className="grid gap-3">
               {presetSessions.map((preset) => {
@@ -105,9 +157,9 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Icon className="h-8 w-8 text-primary" />
-                        <div>
-                          <h3 className="font-medium">{preset.title}</h3>
+                        <Icon className="h-5 w-5 text-primary" />
+                        <div className="flex-1">
+                          <h4 className="font-medium">{preset.title}</h4>
                           <p className="text-sm text-muted-foreground">{preset.description}</p>
                         </div>
                       </div>
@@ -116,94 +168,81 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
                 );
               })}
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => setStep('custom')}
-              className="w-full"
-            >
-              Custom Session
-            </Button>
           </div>
         )}
 
         {step === 'custom' && (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="type">Session Type</Label>
-              <Select 
-                onValueChange={(value) => setValue('type', value as SessionForm['type'])}
-                defaultValue=""
-              >
+              <Label htmlFor="type">Tipo de Sesión *</Label>
+              <Select value={sessionType} onValueChange={(value) => setValue('type', value as any)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select session type" />
+                  <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="training">Training</SelectItem>
-                  <SelectItem value="match">Match</SelectItem>
-                  <SelectItem value="scrimmage">Scrimmage</SelectItem>
+                  <SelectItem value="training">Entrenamiento</SelectItem>
+                  <SelectItem value="match">Partido</SelectItem>
+                  <SelectItem value="scrimmage">Amistoso</SelectItem>
                 </SelectContent>
               </Select>
               {errors.type && (
-                <p className="text-sm text-destructive">Session type is required</p>
+                <p className="text-sm text-destructive">{errors.type.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Session Title</Label>
+              <Label htmlFor="title">Título *</Label>
               <Input
                 id="title"
-                {...register('title', { required: 'Title is required' })}
-                placeholder="e.g., Morning Practice"
+                {...register('title')}
+                placeholder="Ej: Entrenamiento de ataque"
               />
               {errors.title && (
                 <p className="text-sm text-destructive">{errors.title.message}</p>
               )}
             </div>
 
-            {sessionType === 'match' && (
-              <div className="space-y-2">
-                <Label htmlFor="opponent">Opponent</Label>
-                <Input
-                  id="opponent"
-                  {...register('opponent')}
-                  placeholder="Opponent team name"
-                />
-              </div>
-            )}
-
             <div className="space-y-2">
-              <Label htmlFor="teamId">Team</Label>
-              <Select 
-                onValueChange={(value) => setValue('teamId', value)}
-                defaultValue=""
-              >
+              <Label htmlFor="teamId">Equipo *</Label>
+              <Select onValueChange={(value) => setValue('teamId', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select team" />
+                  <SelectValue placeholder="Selecciona un equipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {teams?.map((team) => (
+                  {teams.map(team => (
                     <SelectItem key={team.id} value={team.id}>
-                      {team.nombre} ({team.categoria})
+                      {team.nombre} - {team.categoria} {team.año}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {errors.teamId && (
-                <p className="text-sm text-destructive">Team selection is required</p>
+                <p className="text-sm text-destructive">{errors.teamId.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">Ubicación *</Label>
               <Input
                 id="location"
-                {...register('location', { required: 'Location is required' })}
-                placeholder="e.g., Main Gym"
+                {...register('location')}
+                placeholder="Ej: Gimnasio Municipal"
               />
               {errors.location && (
                 <p className="text-sm text-destructive">{errors.location.message}</p>
               )}
             </div>
+
+            {sessionType === 'match' && (
+              <div className="space-y-2">
+                <Label htmlFor="opponent">Oponente</Label>
+                <Input
+                  id="opponent"
+                  {...register('opponent')}
+                  placeholder="Ej: Club Deportivo Rival"
+                />
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button 
@@ -212,14 +251,21 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
                 onClick={() => setStep('preset')}
                 className="flex-1"
               >
-                Back
+                Atrás
               </Button>
               <Button 
-                type="submit"
+                type="submit" 
                 disabled={startSession.isPending}
                 className="flex-1"
               >
-                {startSession.isPending ? 'Starting...' : 'Start Session'}
+                {startSession.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Iniciando...
+                  </>
+                ) : (
+                  'Iniciar Sesión'
+                )}
               </Button>
             </div>
           </form>

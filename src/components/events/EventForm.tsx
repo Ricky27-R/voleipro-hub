@@ -42,6 +42,8 @@ export const EventForm = ({ onClose }: EventFormProps) => {
   const [selectedBenefits, setSelectedBenefits] = useState<string[]>([]);
   const createEvent = useCreateEvent();
 
+  console.log('EventForm rendered, createEvent:', createEvent);
+
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -58,6 +60,9 @@ export const EventForm = ({ onClose }: EventFormProps) => {
 
   const onSubmit = async (values: z.infer<typeof eventSchema>) => {
     try {
+      console.log('EventForm onSubmit called with values:', values);
+      console.log('Selected benefits:', selectedBenefits);
+      
       await createEvent.mutateAsync({
         ...values,
         date: new Date(values.date).toISOString(),
@@ -67,6 +72,8 @@ export const EventForm = ({ onClose }: EventFormProps) => {
         max_participants: values.max_participants || null,
         benefits: selectedBenefits,
       });
+      
+      console.log('Event created successfully');
       onClose();
     } catch (error) {
       console.error('Error creating event:', error);

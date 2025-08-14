@@ -1,33 +1,57 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Create a Supabase client with the Auth context of the logged in user.
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    );
+    )
 
-    // Get the current user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Get the user from the request
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
-      throw new Error('Unauthorized');
+      throw new Error('Usuario no autenticado')
     }
 
-    const { sessionId } = await req.json();
+    // Get the request body
+    const { sessionId } = await req.json()
 
     if (!sessionId) {
-      throw new Error('Session ID is required');
+      throw new Error('ID de sesión requerido')
+    }
+
+    // Verify the user belongs to the club that owns the session
+    const { data: session, error: sessionError } = await supabaseClient
+      .from('sessions')
+      .select('club_id')
+      .eq('id', sessionId)
+      .single()
+
+    if (sessionError || !session) {
+      throw new Error('Sesión no encontrada')
+    }
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('club_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile || profile.club_id !== session.club_id) {
+      throw new Error('Usuario no tiene permisos para esta sesión')
     }
 
     // Get the last action for this session
@@ -35,64 +59,84 @@ serve(async (req) => {
       .from('actions')
       .select('*')
       .eq('session_id', sessionId)
-      .eq('created_by', user.id)
-      .order('ts', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .single()
 
     if (actionError || !lastAction) {
-      throw new Error('No action found to undo');
+      throw new Error('No hay acciones para deshacer')
     }
 
     // Delete the last action
     const { error: deleteError } = await supabaseClient
       .from('actions')
       .delete()
-      .eq('id', lastAction.id);
+      .eq('id', lastAction.id)
 
     if (deleteError) {
-      console.error('Delete error:', deleteError);
-      throw new Error('Failed to undo action');
+      throw deleteError
     }
 
-    // If the action was a point, decrement the score
+    // If the action was a point, update the set score
     if (lastAction.result === 'point') {
-      const { error: updateError } = await supabaseClient
-        .rpc('decrement_team_score', {
-          p_set_id: lastAction.set_id,
-          p_team_id: lastAction.team_id
-        });
+      const { data: currentSet, error: setError } = await supabaseClient
+        .from('sets')
+        .select('team_score, opp_score')
+        .eq('id', lastAction.set_id)
+        .single()
 
-      if (updateError) {
-        console.error('Score decrement error:', updateError);
-        // Don't fail the undo if score update fails
+      if (setError) {
+        throw setError
+      }
+
+      // Determine which team scored and reduce their score
+      const { data: sessionTeam, error: sessionTeamError } = await supabaseClient
+        .from('sessions')
+        .select('team_id')
+        .eq('id', sessionId)
+        .single()
+
+      if (sessionTeamError) {
+        throw sessionTeamError
+      }
+
+      const isTeamScore = sessionTeam.team_id === lastAction.team_id
+      
+      if (isTeamScore) {
+        await supabaseClient
+          .from('sets')
+          .update({ team_score: Math.max(0, (currentSet.team_score || 0) - 1) })
+          .eq('id', lastAction.set_id)
+      } else {
+        await supabaseClient
+          .from('sets')
+          .update({ opp_score: Math.max(0, (currentSet.opp_score || 0) - 1) })
+          .eq('id', lastAction.set_id)
       }
     }
 
-    console.log('Action undone successfully:', lastAction);
-
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         undoneAction: lastAction
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    );
+        status: 200,
+      },
+    )
 
   } catch (error) {
-    console.error('Error in undo-last-action:', error);
+    console.error('Error undoing action:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Internal server error',
-        success: false 
+      JSON.stringify({
+        success: false,
+        error: error.message
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
-    );
+        status: 400,
+      },
+    )
   }
-});
+})

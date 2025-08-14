@@ -1,97 +1,108 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Create a Supabase client with the Auth context of the logged in user.
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    );
+    )
 
-    // Get the current user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Get the user from the request
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) {
-      throw new Error('Unauthorized');
+      throw new Error('Usuario no autenticado')
     }
 
-    const { type, title, opponent, clubId, teamId, location } = await req.json();
+    // Get the request body
+    const { type, title, opponent, clubId, teamId, location } = await req.json()
 
+    // Validate required fields
     if (!type || !title || !clubId || !teamId || !location) {
-      throw new Error('Missing required fields');
+      throw new Error('Faltan campos requeridos')
     }
 
-    // Create session
+    // Verify the user belongs to the club
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('club_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile || profile.club_id !== clubId) {
+      throw new Error('Usuario no pertenece al club especificado')
+    }
+
+    // Create the session
     const { data: session, error: sessionError } = await supabaseClient
       .from('sessions')
       .insert({
+        club_id: clubId,
+        team_id: teamId,
         type,
         title,
         opponent,
-        club_id: clubId,
         location,
-        date: new Date().toISOString(),
         created_by: user.id
       })
       .select()
-      .single();
+      .single()
 
     if (sessionError) {
-      console.error('Session creation error:', sessionError);
-      throw new Error('Failed to create session');
+      throw sessionError
     }
 
-    // Create first set
-    const { data: firstSet, error: setError } = await supabaseClient
+    // Create the first set
+    const { data: set, error: setError } = await supabaseClient
       .from('sets')
       .insert({
         session_id: session.id,
         set_number: 1,
         team_score: 0,
-        opp_score: 0
+        opp_score: 0,
+        is_completed: false
       })
       .select()
-      .single();
+      .single()
 
     if (setError) {
-      console.error('Set creation error:', setError);
-      throw new Error('Failed to create first set');
+      throw setError
     }
 
-    console.log('Session started successfully:', { session, firstSet });
-
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        session,
-        currentSet: firstSet
+      JSON.stringify({
+        success: true,
+        session: { ...session, sets: [set] }
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    );
+        status: 200,
+      },
+    )
 
   } catch (error) {
-    console.error('Error in start-session:', error);
+    console.error('Error starting session:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Internal server error',
-        success: false 
+      JSON.stringify({
+        success: false,
+        error: error.message
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
-    );
+        status: 400,
+      },
+    )
   }
-});
+})

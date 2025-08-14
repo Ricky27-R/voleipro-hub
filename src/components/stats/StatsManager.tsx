@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PlayCircle, Plus, Calendar, MapPin, Users, Trophy } from 'lucide-react';
+import { PlayCircle, Plus, Calendar, MapPin, Users, Trophy, AlertCircle } from 'lucide-react';
 import { useSessions } from '@/hooks/useSessions';
 import { useProfile } from '@/hooks/useProfile';
 import { format } from 'date-fns';
@@ -17,13 +17,45 @@ interface StatsManagerProps {
 
 export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
   const { data: profile } = useProfile();
-  const { data: sessions, isLoading } = useSessions(clubId);
+  const { data: sessions, isLoading, error } = useSessions(clubId);
   const [activeView, setActiveView] = useState<'overview' | 'live' | 'stats'>('overview');
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
+  console.log('StatsManager render:', { clubId, sessions, isLoading, error, activeView, activeSessionId });
+
+  // Loading state
   if (isLoading) {
-    return <div className="p-6">Cargando estadísticas...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center p-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Cargando estadísticas...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center p-12">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Error al cargar estadísticas</h3>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : 'No se pudieron cargar las estadísticas'}
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Reintentar
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const recentSessions = sessions?.slice(0, 5) || [];
@@ -72,43 +104,43 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
             </Card>
             <Card>
               <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <PlayCircle className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Sesiones activas</p>
-                        <p className="text-2xl font-bold">{activeSessions.length}</p>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <PlayCircle className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sesiones activas</p>
+                    <p className="text-2xl font-bold">{activeSessions.length}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Esta semana</p>
-                        <p className="text-2xl font-bold">
-                          {sessions?.filter(s => 
-                            new Date(s.date).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
-                          ).length || 0}
-                        </p>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Esta semana</p>
+                    <p className="text-2xl font-bold">
+                      {sessions?.filter(s => 
+                        new Date(s.date).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+                      ).length || 0}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Este mes</p>
-                        <p className="text-2xl font-bold">
-                          {sessions?.filter(s => 
-                            new Date(s.date).getMonth() === new Date().getMonth()
-                          ).length || 0}
-                        </p>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Este mes</p>
+                    <p className="text-2xl font-bold">
+                      {sessions?.filter(s => 
+                        new Date(s.date).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000
+                      ).length || 0}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -143,7 +175,8 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
                           session.type === 'match' ? 'default' :
                           session.type === 'training' ? 'secondary' : 'outline'
                         }>
-                          {session.type}
+                          {session.type === 'match' ? 'Partido' : 
+                           session.type === 'training' ? 'Entrenamiento' : 'Amistoso'}
                         </Badge>
                         <div>
                           <h3 className="font-medium">{session.title}</h3>
@@ -166,6 +199,7 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
+                          console.log('Setting active session:', session.id);
                           setActiveSessionId(session.id);
                           setActiveView('live');
                         }}
@@ -180,15 +214,33 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="live">
-          <LiveStatsRecorder 
-            clubId={clubId}
-            sessionId={activeSessionId}
-            onSessionChange={setActiveSessionId}
-          />
+        <TabsContent value="live" className="space-y-6">
+          {activeSessionId ? (
+            <LiveStatsRecorder 
+              clubId={clubId}
+              sessionId={activeSessionId}
+              onSessionChange={setActiveSessionId}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <PlayCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Selecciona una sesión</h3>
+                <p className="text-muted-foreground mb-4">
+                  Para ver detalles o registrar estadísticas, selecciona una sesión del resumen
+                </p>
+                <Button 
+                  onClick={() => setActiveView('overview')}
+                  variant="outline"
+                >
+                  Volver al resumen
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
-        <TabsContent value="stats">
+        <TabsContent value="stats" className="space-y-6">
           <StatsCenter clubId={clubId} />
         </TabsContent>
       </Tabs>
@@ -199,6 +251,7 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
           clubId={clubId}
           onClose={() => setShowQuickStart(false)}
           onSessionStarted={(sessionId) => {
+            console.log('Session started:', sessionId);
             setActiveSessionId(sessionId);
             setActiveView('live');
             setShowQuickStart(false);

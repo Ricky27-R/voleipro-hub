@@ -179,9 +179,9 @@ export const useUndoLastAction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (sessionId: string) => {
+    mutationFn: async (params: { sessionId: string }) => {
       const { data, error } = await supabase.functions.invoke('undo-last-action', {
-        body: { sessionId }
+        body: { sessionId: params.sessionId }
       });
       
       if (error) throw error;
@@ -192,8 +192,8 @@ export const useUndoLastAction = () => {
         queryClient.invalidateQueries({ queryKey: ['actions', data.undoneAction.session_id] });
         queryClient.invalidateQueries({ queryKey: ['sets', data.undoneAction.session_id] });
         toast({
-          title: "Action Undone",
-          description: "Last action has been removed.",
+          title: "Acción Deshecha",
+          description: "La última acción ha sido removida.",
         });
       }
     },
@@ -201,7 +201,7 @@ export const useUndoLastAction = () => {
       console.error('Failed to undo action:', error);
       toast({
         title: "Error",
-        description: "Failed to undo action. Please try again.",
+        description: "No se pudo deshacer la acción. Por favor, intenta de nuevo.",
         variant: "destructive",
       });
     },

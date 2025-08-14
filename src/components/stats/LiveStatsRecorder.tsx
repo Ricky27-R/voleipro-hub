@@ -12,7 +12,9 @@ import {
   Users, 
   Trophy,
   Target,
-  Zap
+  Zap,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { useSessionSets, useSessionActions, useRecordAction, useUndoLastAction } from '@/hooks/useSessions';
 import { usePlayers } from '@/hooks/usePlayers';
@@ -34,9 +36,11 @@ export const LiveStatsRecorder: React.FC<LiveStatsRecorderProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingActions, setPendingActions] = useState<Array<any>>([]);
   
-  const { data: sets } = useSessionSets(sessionId || undefined);
-  const { data: actions } = useSessionActions(sessionId || undefined);
-  const { players } = usePlayers();
+  console.log('LiveStatsRecorder render:', { clubId, sessionId, isRecording, isOnline });
+  
+  const { data: sets, isLoading: setsLoading, error: setsError } = useSessionSets(sessionId || undefined);
+  const { data: actions, isLoading: actionsLoading, error: actionsError } = useSessionActions(sessionId || undefined);
+  const { players, loading: playersLoading } = usePlayers();
   const recordAction = useRecordAction();
   const undoLastAction = useUndoLastAction();
 
@@ -99,113 +103,139 @@ export const LiveStatsRecorder: React.FC<LiveStatsRecorderProps> = ({
     if (!sessionId) return;
     
     try {
-      await undoLastAction.mutateAsync(sessionId);
+      await undoLastAction.mutateAsync({ sessionId });
     } catch (error) {
       console.error('Failed to undo action:', error);
     }
   };
 
+  // Loading state
+  if (setsLoading || actionsLoading || playersLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center p-12">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Cargando datos de la sesión...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (setsError || actionsError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center p-12">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Error al cargar la sesión</h3>
+            <p className="text-muted-foreground mb-4">
+              {setsError?.message || actionsError?.message || 'No se pudieron cargar los datos de la sesión'}
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Reintentar
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No session selected
   if (!sessionId) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Play className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Active Session</h3>
-          <p className="text-muted-foreground mb-4">
-            Start a session to begin recording live stats
-          </p>
-          <Button onClick={() => onSessionChange(null)}>
-            Start New Session
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No hay sesión seleccionada</h3>
+            <p className="text-muted-foreground">
+              Selecciona una sesión del resumen para comenzar a registrar estadísticas.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Status Bar */}
+      {/* Session Header */}
       <Card>
-        <CardContent className="p-4">
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                {isRecording ? (
-                  <Badge variant="destructive" className="gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    Recording
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Paused</Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {isOnline ? (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <Wifi className="h-4 w-4" />
-                    <span className="text-sm">Synced</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-orange-600">
-                    <WifiOff className="h-4 w-4" />
-                    <span className="text-sm">Offline</span>
-                  </div>
-                )}
-                {pendingActions.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {pendingActions.length} pending
-                  </Badge>
-                )}
-              </div>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5 text-green-600" />
+                Sesión Activa
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                ID de sesión: {sessionId}
+              </p>
             </div>
-
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUndo}
-                disabled={!actions || actions.length === 0}
-              >
-                <RotateCcw className="h-4 w-4" />
-                Undo
-              </Button>
-              
-              <Button
-                onClick={() => setIsRecording(!isRecording)}
-                variant={isRecording ? "destructive" : "default"}
-                size="sm"
-              >
-                {isRecording ? (
-                  <>
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4 mr-2" />
-                    Record
-                  </>
-                )}
-              </Button>
+              <Badge variant={isOnline ? 'default' : 'destructive'} className="gap-1">
+                {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+                {isOnline ? 'En línea' : 'Sin conexión'}
+              </Badge>
+              <Badge variant={isRecording ? 'destructive' : 'secondary'} className="gap-1">
+                <Target className="h-3 w-3" />
+                {isRecording ? 'Grabando' : 'Pausado'}
+              </Badge>
             </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => setIsRecording(!isRecording)}
+              variant={isRecording ? 'destructive' : 'default'}
+              className="gap-2"
+            >
+              {isRecording ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isRecording ? 'Pausar' : 'Iniciar'} Grabación
+            </Button>
+            
+            <Button
+              onClick={handleUndo}
+              variant="outline"
+              size="sm"
+              disabled={undoLastAction.isPending}
+              className="gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Deshacer
+            </Button>
+
+            {pendingActions.length > 0 && (
+              <Badge variant="outline" className="gap-1">
+                <WifiOff className="h-3 w-3" />
+                {pendingActions.length} acciones pendientes
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Scoreboard */}
-        <div className="lg:col-span-2">
+      {/* Main Content */}
+      <Tabs defaultValue="dashboard" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dashboard">Dashboard del Partido</TabsTrigger>
+          <TabsTrigger value="recorder">Grabador de Acciones</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-4">
           <MatchDashboard 
             sessionId={sessionId}
-            currentSet={currentSet}
+            sets={sets || []}
             actions={actions || []}
+            currentSet={currentSet}
           />
-        </div>
+        </TabsContent>
 
-        {/* Action Recorder */}
-        <div>
+        <TabsContent value="recorder" className="space-y-4">
           <ActionRecorder
             sessionId={sessionId}
             currentSet={currentSet}
@@ -213,50 +243,8 @@ export const LiveStatsRecorder: React.FC<LiveStatsRecorderProps> = ({
             onActionRecord={handleActionRecord}
             isRecording={isRecording}
           />
-        </div>
-      </div>
-
-      {/* Recent Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Recent Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!actions || actions.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No actions recorded yet
-            </p>
-          ) : (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {actions.slice(0, 10).map((action: any) => (
-                <div 
-                  key={action.id}
-                  className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={action.result === 'point' ? 'default' : 
-                               action.result === 'error' ? 'destructive' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {action.action_type}
-                    </Badge>
-                    <span>
-                      {action.players?.full_name || 'Team'} - {action.result}
-                    </span>
-                  </div>
-                  <span className="text-muted-foreground">
-                    {new Date(action.ts).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
