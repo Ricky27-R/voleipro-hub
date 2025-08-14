@@ -90,20 +90,18 @@ export const useClubInvitations = () => {
   const createAssistantRequest = async (clubCode: string) => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuario no autenticado');
-
-      // Crear solicitud de asistente de forma segura (sin exponer códigos)
+      // Use the RPC function directly for better error handling
       const { data, error } = await supabase.rpc('create_assistant_request_by_code', {
         p_code: clubCode
       });
 
       if (error) throw error;
       if (!data) {
-        throw new Error('Código de invitación inválido');
+        throw new Error('Código de invitación inválido o ya usado');
       }
 
-      if (error) throw error;
+      // Refresh the assistant requests list
+      await fetchAssistantRequests();
       
       toast({
         title: "¡Solicitud enviada!",

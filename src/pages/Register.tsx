@@ -45,17 +45,37 @@ const Register = () => {
       // Si hay código de invitación, crear solicitud
       if (invitationCode.trim()) {
         try {
+          // Wait a bit for the auth state to propagate
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           // Refresh the session to ensure authentication state is synchronized
-          await supabase.auth.getSession();
-          await createAssistantRequest(invitationCode);
+          const { data: session } = await supabase.auth.getSession();
+          if (!session?.session?.user) {
+            throw new Error('No se pudo verificar la autenticación');
+          }
+          
+          // Use the RPC function directly for better error handling
+          const { data: success, error: rpcError } = await supabase.rpc('create_assistant_request_by_code', {
+            p_code: invitationCode.trim()
+          });
+          
+          if (rpcError) {
+            throw new Error(rpcError.message || 'Error al procesar el código de invitación');
+          }
+          
+          if (!success) {
+            throw new Error('Código de invitación inválido o ya usado');
+          }
+          
           toast({
             title: "¡Registro exitoso!",
             description: "Te has registrado y enviado solicitud para unirte al club como entrenador asistente.",
           });
         } catch (invitationError) {
+          console.error('Error with invitation:', invitationError);
           toast({
             title: "Cuenta creada, pero error con la invitación",
-            description: "Tu cuenta se creó correctamente, pero hubo un problema con el código de invitación. Contacta al entrenador principal.",
+            description: `Tu cuenta se creó correctamente, pero hubo un problema: ${invitationError instanceof Error ? invitationError.message : 'Error desconocido'}`,
             variant: "destructive",
           });
         }
