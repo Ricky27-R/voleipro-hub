@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useClubInvitations } from '@/hooks/useClubInvitations';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -44,6 +45,8 @@ const Register = () => {
       // Si hay código de invitación, crear solicitud
       if (invitationCode.trim()) {
         try {
+          // Refresh the session to ensure authentication state is synchronized
+          await supabase.auth.getSession();
           await createAssistantRequest(invitationCode);
           toast({
             title: "¡Registro exitoso!",
