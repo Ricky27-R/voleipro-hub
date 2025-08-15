@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,18 +7,32 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import NotFound from "./pages/NotFound";
-import ClubManagement from "./pages/ClubManagement";
-import AcceptInvitation from "./pages/AcceptInvitation";
-import PendingApproval from "./pages/PendingApproval";
-import AssistantPending from "./pages/AssistantPending";
-import AdminDashboard from "./pages/AdminDashboard";
-import Events from "./pages/Events";
+
+// Lazy load pages for better performance
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ClubManagement = lazy(() => import("./pages/ClubManagement"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+const AssistantPending = lazy(() => import("./pages/AssistantPending"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const Events = lazy(() => import("./pages/Events"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+
 
 const queryClient = new QueryClient();
+
+// Loading component for Suspense fallback
+const PageLoading = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Cargando...</p>
+    </div>
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -27,7 +42,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
+            <Suspense fallback={<PageLoading />}>
+              <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -51,6 +67,11 @@ const App = () => (
                   <ClubManagement />
                 </ProtectedRoute>
               } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/accept-invitation" element={
                 <ProtectedRoute requireApproval={false}>
                   <AcceptInvitation />
@@ -61,9 +82,11 @@ const App = () => (
                   <Events />
                 </ProtectedRoute>
               } />
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

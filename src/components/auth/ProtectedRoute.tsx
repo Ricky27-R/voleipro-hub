@@ -33,14 +33,26 @@ export const ProtectedRoute = ({ children, requireApproval = true, adminOnly = f
     return <Navigate to="/pending-approval" replace />;
   }
 
-  // Check if user needs approval
-  if (requireApproval && profile.role === 'entrenador_principal_pending') {
-    return <Navigate to="/pending-approval" replace />;
-  }
+  // Check if user needs approval based on role
+  if (requireApproval) {
+    // Entrenador principal pending approval from admin
+    if (profile.role === 'entrenador_principal_pending') {
+      return <Navigate to="/pending-approval" replace />;
+    }
+    
+    // Entrenador asistente pending approval from club owner
+    if (profile.role === 'entrenador_asistente_pending') {
+      return <Navigate to="/assistant-pending" replace />;
+    }
+    
 
-  // Si es entrenador asistente pero no está en un club, redirigir a página de pendiente de asistente
-  if (requireApproval && profile.role === 'entrenador_asistente' && !profile.club_id) {
-    return <Navigate to="/assistant-pending" replace />;
+    
+    // Approved assistant coach without club (shouldn't happen but safety check)
+    if (profile.role === 'entrenador_asistente' && !profile.club_id) {
+      return <Navigate to="/assistant-pending" replace />;
+    }
+    
+
   }
 
   return <>{children}</>;

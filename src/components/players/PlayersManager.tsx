@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePlayers, Player } from '@/hooks/usePlayers';
+import { usePlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, Player } from '@/hooks/usePlayers';
 import { useTeams } from '@/hooks/useTeams';
 import { PlayerForm } from './PlayerForm';
 import { PlayersList } from './PlayersList';
@@ -21,14 +21,17 @@ export function PlayersManager({ clubId, clubName }: PlayersManagerProps) {
   const [selectedTeamFilter, setSelectedTeamFilter] = useState<string>('all');
   const [groupByPosition, setGroupByPosition] = useState(false);
 
-  const { teams, loading: teamsLoading } = useTeams(clubId);
-  const { players, loading: playersLoading, createPlayer, updatePlayer, deletePlayer } = usePlayers(
+  const { data: teams = [], isLoading: teamsLoading } = useTeams(clubId);
+  const { data: players = [], isLoading: playersLoading } = usePlayers(
     selectedTeamFilter === 'all' ? undefined : selectedTeamFilter
   );
+  const createPlayer = useCreatePlayer();
+  const updatePlayer = useUpdatePlayer();
+  const deletePlayer = useDeletePlayer();
 
   const handleCreatePlayer = async (playerData: any) => {
     try {
-      await createPlayer(playerData);
+      await createPlayer.mutateAsync(playerData);
       setViewMode('list');
     } catch (error) {
       console.error('Error creating player:', error);
@@ -39,7 +42,7 @@ export function PlayersManager({ clubId, clubName }: PlayersManagerProps) {
     if (!editingPlayer) return;
     
     try {
-      await updatePlayer(editingPlayer.id, playerData);
+      await updatePlayer.mutateAsync({ playerId: editingPlayer.id, playerData });
       setViewMode('list');
       setEditingPlayer(null);
     } catch (error) {
@@ -54,7 +57,7 @@ export function PlayersManager({ clubId, clubName }: PlayersManagerProps) {
 
   const handleDelete = async (playerId: string) => {
     try {
-      await deletePlayer(playerId);
+      await deletePlayer.mutateAsync(playerId);
     } catch (error) {
       console.error('Error deleting player:', error);
     }

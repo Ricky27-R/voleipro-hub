@@ -106,8 +106,8 @@ export const EventCard = ({ event, userTeams }: EventCardProps) => {
           <div>
             <p className="text-sm text-muted-foreground mb-2">Beneficios para equipos visitantes:</p>
             <div className="flex flex-wrap gap-1">
-              {event.benefits.map((benefit: string, index: number) => (
-                <Badge key={index} variant="outline" className="text-xs">
+              {event.benefits.map((benefit: string) => (
+                <Badge key={`${event.id}-${benefit}`} variant="outline" className="text-xs">
                   {benefit}
                 </Badge>
               ))}

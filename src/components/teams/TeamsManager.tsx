@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Team, useTeams } from '@/hooks/useTeams';
+import { Team, useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from '@/hooks/useTeams';
 import { TeamsList } from './TeamsList';
 import { TeamForm } from './TeamForm';
 import { Button } from '@/components/ui/button';
@@ -14,18 +14,21 @@ interface TeamsManagerProps {
 type ViewMode = 'list' | 'create' | 'edit';
 
 export const TeamsManager = ({ clubId, clubName }: TeamsManagerProps) => {
-  const { teams, loading, createTeam, updateTeam, deleteTeam } = useTeams(clubId);
+  const { data: teams = [], isLoading } = useTeams(clubId);
+  const createTeam = useCreateTeam();
+  const updateTeam = useUpdateTeam();
+  const deleteTeam = useDeleteTeam();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   const handleCreateTeam = async (teamData: any) => {
-    await createTeam(teamData);
+    await createTeam.mutateAsync(teamData);
     setViewMode('list');
   };
 
   const handleEditTeam = async (teamData: any) => {
     if (editingTeam) {
-      await updateTeam(editingTeam.id, teamData);
+      await updateTeam.mutateAsync({ teamId: editingTeam.id, teamData });
       setViewMode('list');
       setEditingTeam(null);
     }
@@ -37,7 +40,7 @@ export const TeamsManager = ({ clubId, clubName }: TeamsManagerProps) => {
   };
 
   const handleDelete = async (teamId: string) => {
-    await deleteTeam(teamId);
+    await deleteTeam.mutateAsync({ teamId, clubId });
   };
 
   const handleCancel = () => {
@@ -67,7 +70,7 @@ export const TeamsManager = ({ clubId, clubName }: TeamsManagerProps) => {
           clubId={clubId}
           onSubmit={handleCreateTeam}
           onCancel={handleCancel}
-          loading={loading}
+          loading={createTeam.isPending}
         />
       </div>
     );
@@ -96,7 +99,7 @@ export const TeamsManager = ({ clubId, clubName }: TeamsManagerProps) => {
           clubId={clubId}
           onSubmit={handleEditTeam}
           onCancel={handleCancel}
-          loading={loading}
+          loading={updateTeam.isPending}
         />
       </div>
     );
@@ -127,7 +130,7 @@ export const TeamsManager = ({ clubId, clubName }: TeamsManagerProps) => {
             teams={teams}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            loading={loading}
+            loading={isLoading}
           />
         </CardContent>
       </Card>

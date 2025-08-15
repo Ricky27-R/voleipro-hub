@@ -3,6 +3,8 @@ import { Club } from '@/hooks/useClub';
 import { EnhancedTeamsManager } from '../teams/EnhancedTeamsManager';
 import { PlayersManager } from '../players/PlayersManager';
 import { InvitationsManager } from '../invitations/InvitationsManager';
+import { ClubCodeManager } from './ClubCodeManager';
+import { PendingApprovalsManager } from './PendingApprovalsManager';
 import EventsManager from '../events/EventsManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,9 +25,12 @@ import {
   Moon,
   Activity,
   Trophy,
-  Target
+  Target,
+  KeyRound,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { StatsManager } from '../stats/StatsManager';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
@@ -36,17 +41,32 @@ interface ClubDashboardProps {
   onEdit: () => void;
 }
 
-type ActiveSection = 'overview' | 'teams' | 'players' | 'events' | 'invitations' | 'stats' | 'performance';
+type ActiveSection = 'overview' | 'teams' | 'players' | 'events' | 'invitations' | 'stats' | 'codes' | 'approvals' | 'performance';
 
-const sidebarItems = [
-  { id: 'overview' as const, title: 'Información General', icon: Home, description: 'Vista general del club' },
-  { id: 'teams' as const, title: 'Equipos', icon: Users, description: 'Gestionar equipos' },
-  { id: 'players' as const, title: 'Jugadoras', icon: UserCircle, description: 'Administrar jugadoras' },
-  { id: 'events' as const, title: 'Eventos', icon: Calendar, description: 'Calendario de eventos' },
-  { id: 'invitations' as const, title: 'Entrenadores', icon: Users, description: 'Gestionar entrenadores' },
-  { id: 'stats' as const, title: 'Estadísticas', icon: TrendingUp, description: 'Análisis y métricas' },
-  { id: 'performance' as const, title: 'Rendimiento', icon: Activity, description: 'Test de rendimiento' },
-];
+// Generate sidebar items based on user role
+const getSidebarItems = (userRole?: string) => {
+  const baseItems = [
+    { id: 'overview' as const, title: 'Información General', icon: Home, description: 'Vista general del club' },
+    { id: 'teams' as const, title: 'Equipos', icon: Users, description: 'Gestionar equipos' },
+    { id: 'players' as const, title: 'Jugadoras', icon: UserCircle, description: 'Administrar jugadoras' },
+    { id: 'events' as const, title: 'Eventos', icon: Calendar, description: 'Calendario de eventos' },
+    { id: 'stats' as const, title: 'Estadísticas', icon: TrendingUp, description: 'Análisis y métricas' },
+  ];
+
+  if (userRole === 'entrenador_principal') {
+    return [
+      ...baseItems,
+      { id: 'invitations' as const, title: 'Entrenadores', icon: Users, description: 'Gestionar entrenadores' },
+      { id: 'codes' as const, title: 'Códigos de Club', icon: KeyRound, description: 'Generar códigos de acceso' },
+      { id: 'approvals' as const, title: 'Aprobaciones', icon: Clock, description: 'Aprobar solicitudes pendientes' },
+      { id: 'performance' as const, title: 'Rendimiento', icon: Activity, description: 'Test de rendimiento' },
+    ];
+  } else if (userRole === 'entrenador_asistente') {
+    return baseItems; // Assistant coaches have access to base features only
+  }
+
+  return baseItems; // fallback for other roles
+};
 
 const ClubOverview = ({ club, onEdit }: { club: Club; onEdit: () => void }) => {
   const { theme } = useTheme();
@@ -183,6 +203,9 @@ const ClubSidebar = ({ activeSection, onSectionChange, isCollapsed, onToggle }: 
 }) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { data: profile } = useProfile();
+  
+  const sidebarItems = getSidebarItems(profile?.role);
 
   return (
     <motion.div
@@ -273,6 +296,10 @@ export const ClubDashboard = ({ club, onEdit }: ClubDashboardProps) => {
         return <EventsManager clubId={club.id} />;
       case 'invitations':
         return <InvitationsManager />;
+      case 'codes':
+        return <ClubCodeManager clubId={club.id} />;
+      case 'approvals':
+        return <PendingApprovalsManager clubId={club.id} />;
       case 'stats':
         return <StatsManager clubId={club.id} />;
       case 'performance':

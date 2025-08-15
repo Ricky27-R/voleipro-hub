@@ -22,7 +22,7 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
-  console.log('StatsManager render:', { clubId, sessions, isLoading, error, activeView, activeSessionId });
+
 
   // Loading state
   if (isLoading) {
@@ -199,7 +199,6 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
-                          console.log('Setting active session:', session.id);
                           setActiveSessionId(session.id);
                           setActiveView('live');
                         }}
@@ -251,7 +250,6 @@ export const StatsManager: React.FC<StatsManagerProps> = ({ clubId }) => {
           clubId={clubId}
           onClose={() => setShowQuickStart(false)}
           onSessionStarted={(sessionId) => {
-            console.log('Session started:', sessionId);
             setActiveSessionId(sessionId);
             setActiveView('live');
             setShowQuickStart(false);

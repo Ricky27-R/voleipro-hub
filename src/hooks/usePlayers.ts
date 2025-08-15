@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,81 +19,86 @@ export interface Player {
   updated_at: string;
 }
 
+// Fetch players for a team or all players
+const fetchPlayers = async (teamId?: string): Promise<Player[]> => {
+  let query = supabase
+    .from('players')
+    .select('*')
+    .order('full_name');
+
+  if (teamId) {
+    query = query.eq('team_id', teamId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data || [];
+};
+
 export const usePlayers = (teamId?: string) => {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchPlayers = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('players')
-        .select('*')
-        .order('full_name');
-
-      if (teamId) {
-        query = query.eq('team_id', teamId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching players:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudieron cargar las jugadoras",
-        });
-        return;
-      }
-
-      setPlayers(data || []);
-    } catch (error) {
-      console.error('Error fetching players:', error);
+  return useQuery({
+    queryKey: ['players', teamId],
+    queryFn: () => fetchPlayers(teamId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "Error",
         description: "No se pudieron cargar las jugadoras",
       });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+};
 
-  const createPlayer = async (playerData: Omit<Player, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
+export const useCreatePlayer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (playerData: Omit<Player, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('players')
         .insert([playerData])
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating player:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudo crear la jugadora",
-        });
-        throw error;
-      }
-
+      if (error) throw error;
+      return data as Player;
+    },
+    onSuccess: (data) => {
+      // Invalidate both team-specific and all players queries
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       toast({
         title: "Éxito",
         description: "Jugadora creada exitosamente",
       });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo crear la jugadora",
+      });
+    },
+  });
+};
 
-      await fetchPlayers();
-      return data;
-    } catch (error) {
-      console.error('Error creating player:', error);
-      throw error;
-    }
-  };
-
-  const updatePlayer = async (playerId: string, playerData: Partial<Omit<Player, 'id' | 'created_at' | 'updated_at'>>) => {
-    try {
+export const useUpdatePlayer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async ({
+      playerId,
+      playerData,
+    }: {
+      playerId: string;
+      playerData: Partial<Omit<Player, 'id' | 'created_at' | 'updated_at'>>;
+    }) => {
       const { data, error } = await supabase
         .from('players')
         .update(playerData)
@@ -101,68 +106,53 @@ export const usePlayers = (teamId?: string) => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating player:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudo actualizar la jugadora",
-        });
-        throw error;
-      }
-
+      if (error) throw error;
+      return data as Player;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       toast({
         title: "Éxito",
         description: "Jugadora actualizada exitosamente",
       });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar la jugadora",
+      });
+    },
+  });
+};
 
-      await fetchPlayers();
-      return data;
-    } catch (error) {
-      console.error('Error updating player:', error);
-      throw error;
-    }
-  };
-
-  const deletePlayer = async (playerId: string) => {
-    try {
+export const useDeletePlayer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (playerId: string) => {
       const { error } = await supabase
         .from('players')
         .delete()
         .eq('id', playerId);
 
-      if (error) {
-        console.error('Error deleting player:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No se pudo eliminar la jugadora",
-        });
-        throw error;
-      }
-
+      if (error) throw error;
+      return playerId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
       toast({
         title: "Éxito",
         description: "Jugadora eliminada exitosamente",
       });
-
-      await fetchPlayers();
-    } catch (error) {
-      console.error('Error deleting player:', error);
-      throw error;
-    }
-  };
-
-  useEffect(() => {
-    fetchPlayers();
-  }, [teamId]);
-
-  return {
-    players,
-    loading,
-    createPlayer,
-    updatePlayer,
-    deletePlayer,
-    refetch: fetchPlayers
-  };
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar la jugadora",
+      });
+    },
+  });
 };

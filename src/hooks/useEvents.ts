@@ -9,8 +9,6 @@ export const useTestConnection = () => {
     queryKey: ['test-connection'],
     queryFn: async () => {
       try {
-        console.log('Testing database connection...');
-        
         // Prueba simple de conexión
         const { data, error } = await supabase
           .from('events')
@@ -18,14 +16,11 @@ export const useTestConnection = () => {
           .limit(1);
         
         if (error) {
-          console.error('Connection test error:', error);
           throw error;
         }
         
-        console.log('Connection test successful');
         return { success: true, data };
       } catch (error) {
-        console.error('Connection test failed:', error);
         throw error;
       }
     },
@@ -39,8 +34,6 @@ export const useEvents = () => {
     queryKey: ['events'],
     queryFn: async () => {
       try {
-        console.log('Fetching events...');
-        
         // Primero obtenemos solo los eventos básicos
         const { data: events, error: eventsError } = await supabase
           .from('events')
@@ -65,7 +58,6 @@ export const useEvents = () => {
           .order('date', { ascending: true });
         
         if (eventsError) {
-          console.error('Supabase error:', eventsError);
           throw eventsError;
         }
         
@@ -91,14 +83,11 @@ export const useEvents = () => {
             organizer_club: clubs?.find(c => c.id === event.organizer_club_id),
           }));
           
-          console.log('Events fetched successfully:', enrichedEvents.length, 'events');
           return enrichedEvents;
         }
         
-        console.log('No events found');
         return [];
       } catch (error) {
-        console.error('Error in useEvents:', error);
         throw error;
       }
     },
@@ -139,8 +128,6 @@ export const useCreateEvent = () => {
         status: 'active',
       };
 
-      console.log('Creating event:', eventToCreate);
-
       const { data, error } = await supabase
         .from('events')
         .insert(eventToCreate)
@@ -148,7 +135,6 @@ export const useCreateEvent = () => {
         .single();
 
       if (error) {
-        console.error('Error creating event:', error);
         throw error;
       }
 
@@ -159,7 +145,6 @@ export const useCreateEvent = () => {
       toast.success('Evento creado exitosamente');
     },
     onError: (error: any) => {
-      console.error('Error in useCreateEvent:', error);
       toast.error('Error al crear evento: ' + (error.message || 'Error desconocido'));
     },
   });

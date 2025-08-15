@@ -37,7 +37,7 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
 
   const sessionType = watch('type');
 
-  console.log('QuickStartSession render:', { clubId, teams, teamsLoading, step });
+
 
   const presetSessions = [
     {
@@ -68,8 +68,6 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
 
   const onSubmit = async (data: SessionForm) => {
     try {
-      console.log('Submitting session data:', data);
-      
       const result = await startSession.mutateAsync({
         type: data.type,
         title: data.title,
@@ -79,8 +77,6 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
         location: data.location
       });
       
-      console.log('Session result:', result);
-      
       if (result.session) {
         toast.success('Sesión iniciada correctamente');
         onSessionStarted(result.session.id);
@@ -88,7 +84,6 @@ export const QuickStartSession: React.FC<QuickStartSessionProps> = ({
         throw new Error('No se pudo crear la sesión');
       }
     } catch (error) {
-      console.error('Failed to start session:', error);
       toast.error('Error al iniciar la sesión: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };

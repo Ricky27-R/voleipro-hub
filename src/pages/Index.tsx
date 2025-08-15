@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/button';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { SmartRedirect } from '@/components/auth/SmartRedirect';
 
 const Index = () => {
   const { user, loading } = useAuth();
 
-  // Redirect to club if already logged in
+  // Redirect intelligently if already logged in
   if (user && !loading) {
-    return <Navigate to="/club" replace />;
+    return <SmartRedirect />;
   }
 
   return (

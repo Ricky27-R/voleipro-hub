@@ -36,7 +36,7 @@ export const LiveStatsRecorder: React.FC<LiveStatsRecorderProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingActions, setPendingActions] = useState<Array<any>>([]);
   
-  console.log('LiveStatsRecorder render:', { clubId, sessionId, isRecording, isOnline });
+
   
   const { data: sets, isLoading: setsLoading, error: setsError } = useSessionSets(sessionId || undefined);
   const { data: actions, isLoading: actionsLoading, error: actionsError } = useSessionActions(sessionId || undefined);

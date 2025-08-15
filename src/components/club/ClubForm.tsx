@@ -108,35 +108,38 @@ export const ClubForm = ({ club, onSubmit, loading }: ClubFormProps) => {
   const selectedPais = watch('pais');
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-6 w-6" />
-            {club ? 'Editar Información del Club' : 'Registrar Nuevo Club'}
-          </CardTitle>
-          <CardDescription>
-            {club ? 'Actualiza la información detallada de tu club' : 'Completa toda la información para registrar tu club'}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="min-h-screen bg-background">
+      <div className="w-full max-w-4xl mx-auto p-6 space-y-6">
+        <div className="bg-white rounded-lg border shadow-sm">
+          <div className="p-6 border-b">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold">
+                {club ? 'Editar Información del Club' : 'Registrar Nuevo Club'}
+              </h1>
+            </div>
+            <p className="text-muted-foreground mt-2">
+              {club ? 'Actualiza la información detallada de tu club' : 'Completa toda la información para registrar tu club'}
+            </p>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
-        {/* Información General del Club */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Información General del Club
-            </CardTitle>
-            <CardDescription>
-              Datos básicos de identificación del club
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre del Club *</Label>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          {/* Información General del Club */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Información General del Club</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Datos básicos de identificación del club
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nombre">Nombre del Club *</Label>
                 <Input
                   id="nombre"
                   {...register('nombre')}
@@ -239,26 +242,26 @@ export const ClubForm = ({ club, onSubmit, loading }: ClubFormProps) => {
                 {errors.tipo_club && (
                   <p className="text-sm text-destructive">{errors.tipo_club.message}</p>
                 )}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Información de Contacto */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Phone className="h-5 w-5" />
-              Información de Contacto
-            </CardTitle>
-            <CardDescription>
-              Datos para comunicación oficial del club
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email_institucional">Correo Electrónico Institucional *</Label>
+          {/* Información de Contacto */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2">
+                <Phone className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Información de Contacto</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Datos para comunicación oficial del club
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="email_institucional">Correo Electrónico Institucional *</Label>
                 <Input
                   id="email_institucional"
                   type="email"
@@ -304,26 +307,26 @@ export const ClubForm = ({ club, onSubmit, loading }: ClubFormProps) => {
                 {errors.redes_sociales && (
                   <p className="text-sm text-destructive">{errors.redes_sociales.message}</p>
                 )}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Documentación y Verificación */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Documentación y Verificación
-            </CardTitle>
-            <CardDescription>
-              Archivos y documentos del club (opcionales)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="logo_url">Logo del Club</Label>
+          {/* Documentación y Verificación */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Documentación y Verificación</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Archivos y documentos del club (opcionales)
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="logo_url">Logo del Club</Label>
                 <Input
                   id="logo_url"
                   {...register('logo_url')}
@@ -356,26 +359,26 @@ export const ClubForm = ({ club, onSubmit, loading }: ClubFormProps) => {
                 {errors.ruc_registro_legal && (
                   <p className="text-sm text-destructive">{errors.ruc_registro_legal.message}</p>
                 )}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Representante del Club */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Representante del Club
-            </CardTitle>
-            <CardDescription>
-              Información de la persona responsable del club
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="nombre_representante">Nombre Completo *</Label>
+          {/* Representante del Club */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Representante del Club</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Información de la persona responsable del club
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nombre_representante">Nombre Completo *</Label>
                 <Input
                   id="nombre_representante"
                   {...register('nombre_representante')}
@@ -433,46 +436,51 @@ export const ClubForm = ({ club, onSubmit, loading }: ClubFormProps) => {
                 {errors.cargo_club && (
                   <p className="text-sm text-destructive">{errors.cargo_club.message}</p>
                 )}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Términos y Condiciones */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Términos y Condiciones
-            </CardTitle>
-            <CardDescription>
-              Confirmación de aceptación de términos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="aceptacion_terminos"
-                checked={watch('aceptacion_terminos')}
-                onCheckedChange={(checked) => setValue('aceptacion_terminos', checked as boolean)}
-              />
-              <Label htmlFor="aceptacion_terminos" className="text-sm">
-                Acepto los términos y condiciones del uso de la plataforma VoleiPro Hub *
-              </Label>
+          {/* Términos y Condiciones */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Términos y Condiciones</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Confirmación de aceptación de términos
+              </p>
             </div>
-            {errors.aceptacion_terminos && (
-              <p className="text-sm text-destructive mt-2">{errors.aceptacion_terminos.message}</p>
-            )}
-          </CardContent>
-        </Card>
+            <div className="p-6">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="aceptacion_terminos"
+                  checked={watch('aceptacion_terminos')}
+                  onCheckedChange={(checked) => setValue('aceptacion_terminos', checked as boolean)}
+                />
+                <Label htmlFor="aceptacion_terminos" className="text-sm">
+                  Acepto los términos y condiciones del uso de la plataforma VoleiPro Hub *
+                </Label>
+              </div>
+              {errors.aceptacion_terminos && (
+                <p className="text-sm text-destructive mt-2">{errors.aceptacion_terminos.message}</p>
+              )}
+            </div>
+          </div>
 
-        {/* Botones de Acción */}
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isSubmitting || loading} className="min-w-[150px]">
-            {isSubmitting || loading ? 'Guardando...' : (club ? 'Actualizar Club' : 'Crear Club')}
-          </Button>
-        </div>
-      </form>
+          {/* Botones de Acción */}
+          <div className="bg-white rounded-lg border shadow-sm">
+            <div className="p-6">
+              <div className="flex justify-end gap-4">
+                <Button type="submit" disabled={isSubmitting || loading} className="min-w-[150px]">
+                  {isSubmitting || loading ? 'Guardando...' : (club ? 'Actualizar Club' : 'Crear Club')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

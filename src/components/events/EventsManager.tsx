@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, Suspense, lazy } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, Plus, Search, Filter, Database } from 'lucide-react';
 import { useEvents, useTestConnection } from '@/hooks/useEvents';
 import { useTeams } from '@/hooks/useTeams';
-import { EventForm } from './EventForm';
-import { EventCard } from './EventCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Lazy load heavy components
+const EventForm = lazy(() => import('./EventForm').then(module => ({ default: module.EventForm })));
+const EventCard = lazy(() => import('./EventCard').then(module => ({ default: module.EventCard })));
 
 interface EventsManagerProps {
   clubId: string;
@@ -16,33 +18,34 @@ interface EventsManagerProps {
 
 const EventsManager = ({ clubId }: EventsManagerProps) => {
   const { data: events, isLoading, error, refetch } = useEvents();
-  const { teams } = useTeams(clubId);
+  const { data: teams } = useTeams(clubId);
   const { data: connectionTest, error: connectionError } = useTestConnection();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterCity, setFilterCity] = useState('all');
 
-  console.log('EventsManager render:', { 
-    events, 
-    isLoading, 
-    error, 
-    clubId, 
-    connectionTest, 
-    connectionError 
-  });
 
-  const filteredEvents = events?.filter(event => {
-    const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.organizer_club?.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || event.event_type === filterType;
-    const matchesCity = filterCity === 'all' || event.city === filterCity;
+
+  // Memoize filtered events to avoid recalculation on every render
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
     
-    return matchesSearch && matchesType && matchesCity;
-  });
+    return events.filter(event => {
+      const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.organizer_club?.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || event.event_type === filterType;
+      const matchesCity = filterCity === 'all' || event.city === filterCity;
+      
+      return matchesSearch && matchesType && matchesCity;
+    });
+  }, [events, searchTerm, filterType, filterCity]);
 
-  const cities = [...new Set(events?.map(event => event.city) || [])];
+  // Memoize cities list for filter dropdown
+  const cities = useMemo(() => {
+    return [...new Set(events?.map(event => event.city) || [])];
+  }, [events]);
 
   if (isLoading) {
     return (
@@ -64,7 +67,6 @@ const EventsManager = ({ clubId }: EventsManagerProps) => {
   }
 
   if (error) {
-    console.error('EventsManager error:', error);
     
     return (
       <div className="space-y-6">
@@ -131,10 +133,7 @@ const EventsManager = ({ clubId }: EventsManagerProps) => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Eventos</h1>
         <Button 
-          onClick={() => {
-            console.log('Create event button clicked');
-            setShowCreateForm(true);
-          }} 
+          onClick={() => setShowCreateForm(true)} 
           className="gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -207,9 +206,29 @@ const EventsManager = ({ clubId }: EventsManagerProps) => {
 
       {/* Events Grid */}
       <div className="grid gap-6">
-        {filteredEvents?.map(event => (
-          <EventCard key={event.id} event={event} userTeams={teams || []} />
-        ))}
+        <Suspense fallback={
+          <div className="grid gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-6 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded"></div>
+                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                    <div className="h-4 bg-muted rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        }>
+          {filteredEvents?.map(event => (
+            <EventCard key={event.id} event={event} userTeams={teams || []} />
+          ))}
+        </Suspense>
         
         {(!filteredEvents || filteredEvents.length === 0) && (
           <Card>
@@ -228,7 +247,16 @@ const EventsManager = ({ clubId }: EventsManagerProps) => {
       </div>
 
       {showCreateForm && (
-        <EventForm onClose={() => setShowCreateForm(false)} />
+        <Suspense fallback={
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-background p-6 rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-sm text-muted-foreground mt-2">Cargando formulario...</p>
+            </div>
+          </div>
+        }>
+          <EventForm onClose={() => setShowCreateForm(false)} />
+        </Suspense>
       )}
     </div>
   );

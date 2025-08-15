@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -40,39 +40,36 @@ export interface Club {
   updated_at: string;
 }
 
+// Fetch user's club
+const fetchUserClub = async (): Promise<Club | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuario no autenticado');
+
+  const { data, error } = await supabase
+    .from('clubs')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as Club;
+};
+
 export const useClub = () => {
-  const [club, setClub] = useState<Club | null>(null);
-  const [loading, setLoading] = useState(false);
+  return useQuery({
+    queryKey: ['club'],
+    queryFn: fetchUserClub,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
 
-  const fetchUserClub = async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuario no autenticado');
-
-      const { data, error } = await supabase
-        .from('clubs')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setClub(data as Club);
-    } catch (error) {
-      console.error('Error al obtener club:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el club",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createClub = async (clubData: Omit<Club, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    setLoading(true);
-    try {
+export const useCreateClub = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (clubData: Omit<Club, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
@@ -83,98 +80,59 @@ export const useClub = () => {
         .single();
 
       if (error) throw error;
-      
-      setClub(data as Club);
+      return data as Club;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['club'], data);
       toast({
         title: "¡Éxito!",
         description: "Club creado correctamente",
       });
-      return data;
-    } catch (error: any) {
-      console.error('Error al crear club:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el club",
         variant: "destructive",
       });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+};
 
-  const updateClub = async (clubData: Partial<Omit<Club, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
-    if (!club) return;
-    
-    setLoading(true);
-    try {
+export const useUpdateClub = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({
+      clubId,
+      clubData,
+    }: {
+      clubId: string;
+      clubData: Partial<Omit<Club, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
+    }) => {
       const { data, error } = await supabase
         .from('clubs')
         .update(clubData)
-        .eq('id', club.id)
+        .eq('id', clubId)
         .select()
         .single();
 
       if (error) throw error;
-      
-      setClub(data as Club);
+      return data as Club;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['club'], data);
       toast({
         title: "¡Éxito!",
         description: "Club actualizado correctamente",
       });
-      return data;
-    } catch (error: any) {
-      console.error('Error al actualizar club:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo actualizar el club",
         variant: "destructive",
       });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteClub = async () => {
-    if (!club) return;
-    
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('clubs')
-        .delete()
-        .eq('id', club.id);
-
-      if (error) throw error;
-      
-      setClub(null);
-      toast({
-        title: "¡Éxito!",
-        description: "Club eliminado correctamente",
-      });
-    } catch (error: any) {
-      console.error('Error al eliminar club:', error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo eliminar el club",
-        variant: "destructive",
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserClub();
-  }, []);
-
-  return {
-    club,
-    loading,
-    createClub,
-    updateClub,
-    refetch: fetchUserClub,
-  };
+    },
+  });
 };

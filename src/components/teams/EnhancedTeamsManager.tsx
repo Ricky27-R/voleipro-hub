@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
-import { useTeams, Team } from '@/hooks/useTeams';
-import { usePlayers, Player } from '@/hooks/usePlayers';
+import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam, Team } from '@/hooks/useTeams';
+import { usePlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, Player } from '@/hooks/usePlayers';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { TeamCard } from './TeamCard';
@@ -20,8 +20,14 @@ interface EnhancedTeamsManagerProps {
 export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerProps) => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
-  const { teams, loading: teamsLoading, createTeam, updateTeam, deleteTeam } = useTeams(clubId);
-  const { players, createPlayer, updatePlayer, deletePlayer } = usePlayers();
+  const { data: teams = [], isLoading: teamsLoading } = useTeams(clubId);
+  const createTeam = useCreateTeam();
+  const updateTeam = useUpdateTeam();
+  const deleteTeam = useDeleteTeam();
+  const { data: players = [] } = usePlayers();
+  const createPlayer = useCreatePlayer();
+  const updatePlayer = useUpdatePlayer();
+  const deletePlayerMutation = useDeletePlayer();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
@@ -64,7 +70,7 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
     try {
       const confirmed = window.confirm('¿Eliminar jugadora? Esta acción no se puede deshacer.');
       if (!confirmed) return;
-      await deletePlayer(playerId);
+      await deletePlayerMutation.mutateAsync(playerId);
       setSelectedPlayer(null);
     } catch (error) {
       console.error('Error eliminando jugadora:', error);
@@ -73,9 +79,9 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
   const handlePlayerSubmit = async (data: any) => {
     try {
       if (editingPlayer) {
-        await updatePlayer(editingPlayer.id, data);
+        await updatePlayer.mutateAsync({ playerId: editingPlayer.id, playerData: data });
       } else {
-        await createPlayer({ ...data, team_id: selectedTeam?.id });
+        await createPlayer.mutateAsync({ ...data, team_id: selectedTeam?.id });
       }
       setShowPlayerForm(false);
       setEditingPlayer(null);
@@ -123,7 +129,7 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
                   setEditingTeam(team);
                   setView('edit');
                 }}
-                onDelete={deleteTeam}
+                onDelete={(teamId) => deleteTeam.mutateAsync({ teamId, clubId })}
                 onOpenDrawer={handleTeamDrawerOpen}
               />
             ))}
@@ -147,7 +153,7 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
         <TeamForm
           clubId={clubId}
           onSubmit={async (data) => {
-            await createTeam(data as Omit<Team, 'id' | 'created_at' | 'updated_at'>);
+            await createTeam.mutateAsync(data as Omit<Team, 'id' | 'created_at' | 'updated_at'>);
             setView('list');
           }}
           onCancel={() => setView('list')}
@@ -159,7 +165,7 @@ export const EnhancedTeamsManager = ({ clubId, clubName }: EnhancedTeamsManagerP
           clubId={clubId}
           team={editingTeam}
           onSubmit={async (data) => {
-            await updateTeam(editingTeam.id, data);
+            await updateTeam.mutateAsync({ teamId: editingTeam.id, teamData: data });
             setView('list');
             setEditingTeam(null);
           }}

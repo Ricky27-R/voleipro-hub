@@ -1,29 +1,40 @@
 import { ClubForm } from './ClubForm';
-import { useClub } from '@/hooks/useClub';
+import { useClub, useCreateClub, useUpdateClub } from '@/hooks/useClub';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ClubDashboard } from './ClubDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Edit, Plus } from 'lucide-react';
 
 export const ClubManager = () => {
-  const { club, loading, createClub, updateClub } = useClub();
+  const { data: club, isLoading } = useClub();
+  const createClub = useCreateClub();
+  const updateClub = useUpdateClub();
+  const [searchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
+
+  // Detectar si debe iniciar en modo edición
+  useEffect(() => {
+    if (searchParams.get('edit') === 'true' && club) {
+      setIsEditing(true);
+    }
+  }, [searchParams, club]);
 
   const handleSubmit = async (data: any) => {
     try {
       if (club) {
-        await updateClub(data);
+        await updateClub.mutateAsync({ clubId: club.id, clubData: data });
         setIsEditing(false);
       } else {
-        await createClub(data);
+        await createClub.mutateAsync(data);
       }
     } catch (error) {
-      console.error('Error en ClubManager:', error);
+      // Error handling is done in the mutations
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
@@ -55,7 +66,7 @@ export const ClubManager = () => {
           </CardContent>
         </Card>
         
-        <ClubForm onSubmit={handleSubmit} loading={loading} />
+        <ClubForm onSubmit={handleSubmit} loading={createClub.isPending || updateClub.isPending} />
       </div>
     );
   }
@@ -81,7 +92,7 @@ export const ClubManager = () => {
           </CardContent>
         </Card>
         
-        <ClubForm club={club} onSubmit={handleSubmit} loading={loading} />
+        <ClubForm club={club} onSubmit={handleSubmit} loading={createClub.isPending || updateClub.isPending} />
         
         <div className="text-center">
           <Button variant="outline" onClick={() => setIsEditing(false)} className="min-w-[150px]">

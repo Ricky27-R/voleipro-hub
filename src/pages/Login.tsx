@@ -1,21 +1,32 @@
-import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { SmartRedirect } from '@/components/auth/SmartRedirect';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hasPendingCode, setHasPendingCode] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
 
+  // Verificar si hay código pendiente al cargar la página
+  useEffect(() => {
+    const pendingCode = localStorage.getItem('pending_club_code');
+    // Solo mostrar si realmente hay un código válido (no vacío)
+    setHasPendingCode(!!pendingCode && pendingCode.trim().length > 0);
+  }, []);
+
   // Redirect if already logged in
   if (user) {
-    return <Navigate to="/club" replace />;
+    return <SmartRedirect />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +75,16 @@ const Login = () => {
               <h2 className="text-3xl font-bold">Iniciar Sesión</h2>
               <p className="text-neutral-400">Accede a tu plataforma de gestión de voleibol</p>
             </div>
+
+            {hasPendingCode && (
+              <Alert className="mb-6 bg-blue-950/50 border-blue-500/50">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-blue-200">
+                  <strong>Código de club pendiente:</strong> Tu código se aplicará automáticamente después del login para unirte como entrenador asistente.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label htmlFor="email">Email</Label>

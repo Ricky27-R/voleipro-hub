@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,39 +12,34 @@ export interface Team {
   updated_at: string;
 }
 
+// Fetch teams for a club
+const fetchTeams = async (clubId: string): Promise<Team[]> => {
+  const { data, error } = await supabase
+    .from('teams')
+    .select('*')
+    .eq('club_id', clubId)
+    .order('categoria', { ascending: true })
+    .order('año', { ascending: false });
+
+  if (error) throw error;
+  return (data || []) as Team[];
+};
+
 export const useTeams = (clubId?: string) => {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(false);
+  return useQuery({
+    queryKey: ['teams', clubId],
+    queryFn: () => fetchTeams(clubId!),
+    enabled: !!clubId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+  });
+};
 
-  const fetchTeams = async () => {
-    if (!clubId) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('club_id', clubId)
-        .order('categoria', { ascending: true })
-        .order('año', { ascending: false });
-
-      if (error) throw error;
-      setTeams((data || []) as Team[]);
-    } catch (error) {
-      console.error('Error al obtener equipos:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los equipos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createTeam = async (teamData: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
-    setLoading(true);
-    try {
+export const useCreateTeam = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (teamData: Omit<Team, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('teams')
         .insert([teamData])
@@ -52,29 +47,37 @@ export const useTeams = (clubId?: string) => {
         .single();
 
       if (error) throw error;
-      
-      setTeams(prev => [...prev, data as Team]);
+      return data as Team;
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch teams for this club
+      queryClient.invalidateQueries({ queryKey: ['teams', data.club_id] });
       toast({
         title: "¡Éxito!",
         description: "Equipo creado correctamente",
       });
-      return data;
-    } catch (error: any) {
-      console.error('Error al crear equipo:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el equipo",
         variant: "destructive",
       });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+};
 
-  const updateTeam = async (teamId: string, teamData: Partial<Omit<Team, 'id' | 'club_id' | 'created_at' | 'updated_at'>>) => {
-    setLoading(true);
-    try {
+export const useUpdateTeam = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({
+      teamId,
+      teamData,
+    }: {
+      teamId: string;
+      teamData: Partial<Omit<Team, 'id' | 'club_id' | 'created_at' | 'updated_at'>>;
+    }) => {
       const { data, error } = await supabase
         .from('teams')
         .update(teamData)
@@ -83,64 +86,51 @@ export const useTeams = (clubId?: string) => {
         .single();
 
       if (error) throw error;
-      
-      setTeams(prev => prev.map(team => team.id === teamId ? (data as Team) : team));
+      return data as Team;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', data.club_id] });
       toast({
         title: "¡Éxito!",
         description: "Equipo actualizado correctamente",
       });
-      return data;
-    } catch (error: any) {
-      console.error('Error al actualizar equipo:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo actualizar el equipo",
         variant: "destructive",
       });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+};
 
-  const deleteTeam = async (teamId: string) => {
-    setLoading(true);
-    try {
+export const useDeleteTeam = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ teamId, clubId }: { teamId: string; clubId: string }) => {
       const { error } = await supabase
         .from('teams')
         .delete()
         .eq('id', teamId);
 
       if (error) throw error;
-      
-      setTeams(prev => prev.filter(team => team.id !== teamId));
+      return { teamId, clubId };
+    },
+    onSuccess: ({ clubId }) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', clubId] });
       toast({
         title: "¡Éxito!",
         description: "Equipo eliminado correctamente",
       });
-    } catch (error: any) {
-      console.error('Error al eliminar equipo:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo eliminar el equipo",
         variant: "destructive",
       });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTeams();
-  }, [clubId]);
-
-  return {
-    teams,
-    loading,
-    createTeam,
-    updateTeam,
-    deleteTeam,
-    refetch: fetchTeams,
-  };
+    },
+  });
 };
